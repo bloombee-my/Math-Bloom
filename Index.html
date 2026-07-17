@@ -2,269 +2,288 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MathBloom Kids</title>
-    <!-- Tailwind CSS for bright, cheerful styling -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MathBloom Kids: Super Arcade Adventure</title>
+    <!-- Tailwind CSS for modern, bouncy styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for friendly, rounded typography -->
+    <!-- Playful Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Lilita+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body {
             font-family: 'Fredoka', sans-serif;
-            background-color: #fef08a; /* Soft sunny yellow background */
+            background: radial-gradient(circle, #fef08a 0%, #fde047 100%);
             user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            overflow: hidden;
         }
         .kids-title {
             font-family: 'Lilita One', cursive;
+            text-shadow: 3px 3px 0px #b45309;
         }
-        /* Custom smooth confetti animation */
-        @keyframes fall {
-            0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(800px) rotate(360deg); opacity: 0; }
+        /* Particle Burst Keyframes */
+        @keyframes particleUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-120px) scale(0); opacity: 0; }
         }
-        .confetti {
+        .star-particle {
             position: absolute;
-            width: 12px;
-            height: 12px;
-            animation: fall 3s linear forwards;
+            animation: particleUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
             pointer-events: none;
         }
-        /* Custom scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 6px;
+        /* Bouncy Wobble for Monsters and Buttons */
+        @keyframes wobble {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            25% { transform: scale(1.1) rotate(-3deg); }
+            75% { transform: scale(1.05) rotate(3deg); }
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .monster-bounce {
+            animation: wobble 3s infinite ease-in-out;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
+        /* Chomping Monster Animation */
+        @keyframes chomp {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.5); }
         }
+        .eating {
+            animation: chomp 0.2s 3 ease-in-out;
+        }
+        /* Hide scrollbars */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
+<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 relative">
 
-    <!-- Confetti Container -->
-    <div id="confetti-container" class="absolute inset-0 pointer-events-none z-50"></div>
+    <!-- Confetti Canvas overlay -->
+    <div id="sparkle-canvas-container" class="absolute inset-0 pointer-events-none z-50"></div>
 
-    <!-- Mobile Device Frame Container -->
-    <div class="w-full max-w-md bg-white rounded-[40px] shadow-2xl border-8 border-amber-400 overflow-hidden flex flex-col relative" style="height: 820px;">
+    <!-- Main Game Console Frame -->
+    <div class="w-full max-w-md bg-amber-100 rounded-[40px] shadow-2xl border-[10px] border-amber-400 overflow-hidden flex flex-col relative" style="height: 840px;">
         
-        <!-- App Header Status Bar -->
-        <div class="bg-amber-400 text-white px-6 py-4 flex justify-between items-center shrink-0">
+        <!-- Header Console Bar -->
+        <div class="bg-gradient-to-r from-amber-400 to-orange-400 text-white px-5 py-4 flex justify-between items-center shrink-0 border-b-4 border-amber-500">
             <div class="flex items-center space-x-2">
-                <span class="text-2xl animate-bounce">🌸</span>
-                <span class="kids-title text-2xl tracking-wider text-amber-900">MathBloom</span>
+                <span class="text-3xl animate-bounce">👾</span>
+                <span class="kids-title text-2xl tracking-wide text-white">MathBloom Arcade</span>
             </div>
-            <!-- Live Star Counter -->
-            <div class="bg-amber-500/50 px-3 py-1 rounded-full flex items-center space-x-1 border border-amber-200">
-                <span class="text-yellow-300 text-lg">⭐</span>
-                <span id="global-star-count" class="font-bold text-white text-lg">0</span>
+            <!-- Star Currency & Gem Shop counters -->
+            <div class="flex items-center space-x-1.5">
+                <div class="bg-amber-600/30 px-3 py-1 rounded-full flex items-center space-x-1 border border-white/40">
+                    <span class="text-yellow-300 text-base">⭐</span>
+                    <span id="global-star-count" class="font-bold text-white text-sm">0</span>
+                </div>
+                <div class="bg-amber-600/30 px-3 py-1 rounded-full flex items-center space-x-1 border border-white/40 cursor-pointer hover:scale-105 transition-transform" onclick="switchScreen('shop')">
+                    <span class="text-pink-300 text-base">💎</span>
+                    <span id="global-gem-count" class="font-bold text-white text-sm">15</span>
+                </div>
             </div>
         </div>
 
-        <!-- Main Content Area -->
-        <div id="screen-container" class="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-sky-50 to-orange-50 flex flex-col justify-between">
+        <!-- Master Visual Screen Panel -->
+        <div id="screen-container" class="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-sky-100 via-sky-50 to-emerald-50 flex flex-col justify-between relative">
             
-            <!-- ================= HOME SCREEN ================= -->
-            <div id="screen-home" class="space-y-6 flex-1 flex flex-col justify-center">
-                <div class="text-center space-y-3 mb-4">
-                    <div class="text-7xl inline-block transform hover:scale-110 transition-transform cursor-pointer" onclick="speak('Hello little Explorer!')">🦁</div>
-                    <h1 class="kids-title text-4xl text-orange-500 tracking-wide">Hi Explorer!</h1>
-                    <p class="text-gray-600 text-sm font-semibold">Ready to play with numbers today?</p>
+            <!-- ================= ARCADE HOME SCREEN ================= -->
+            <div id="screen-home" class="space-y-6 flex-1 flex flex-col justify-between py-4">
+                <div class="text-center space-y-3">
+                    <!-- Interactive Mascot -->
+                    <div id="mascot-home" class="text-8xl inline-block cursor-pointer monster-bounce" onclick="petMascot()">
+                        🦊
+                    </div>
+                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl py-2 px-4 inline-block border-2 border-orange-300">
+                        <p id="mascot-bubble" class="text-orange-600 font-bold text-sm">Tap me to play, Explorer!</p>
+                    </div>
+                    <h1 class="kids-title text-5xl text-orange-500 tracking-wide">MathBloom!</h1>
                 </div>
 
+                <!-- Beautiful Level Launchpad Grid -->
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="switchScreen('levels')" class="bg-emerald-400 hover:bg-emerald-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-emerald-600">
-                        <span class="text-5xl mb-2">📚</span>
-                        <span class="font-bold text-lg">Play Levels</span>
+                    <button onclick="switchScreen('modules')" class="bg-emerald-400 hover:bg-emerald-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-emerald-600">
+                        <span class="text-5xl mb-2">🌴</span>
+                        <span class="font-bold text-lg">Adventure Map</span>
                     </button>
-                    <button onclick="switchScreen('progress')" class="bg-pink-400 hover:bg-pink-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-pink-600">
-                        <span class="text-5xl mb-2">🏆</span>
-                        <span class="font-bold text-lg">My Stars</span>
+                    <button onclick="switchScreen('shop')" class="bg-pink-400 hover:bg-pink-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-pink-600">
+                        <span class="text-5xl mb-2">👑</span>
+                        <span class="font-bold text-lg">Mascot Shop</span>
                     </button>
                     <button onclick="switchScreen('stickers')" class="bg-indigo-400 hover:bg-indigo-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-indigo-600">
-                        <span class="text-5xl mb-2">🐾</span>
-                        <span class="font-bold text-lg">Stickers</span>
+                        <span class="text-5xl mb-2">🏆</span>
+                        <span class="font-bold text-lg">Sticker Book</span>
                     </button>
                     <button onclick="switchScreen('parents')" class="bg-sky-400 hover:bg-sky-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-sky-600">
-                        <span class="text-5xl mb-2">🔒</span>
-                        <span class="font-bold text-lg">Parents</span>
+                        <span class="text-5xl mb-2">⚙️</span>
+                        <span class="font-bold text-lg">Parents Zone</span>
                     </button>
                 </div>
             </div>
 
-            <!-- ================= LEVEL SELECTOR SCREEN ================= -->
+            <!-- ================= THE ADVENTURE MAP (MODULES) ================= -->
+            <div id="screen-modules" class="hidden space-y-4 flex-1">
+                <div class="flex items-center justify-between">
+                    <button onclick="switchScreen('home')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
+                        <i class="fa-solid fa-house"></i> Home
+                    </button>
+                    <h2 class="kids-title text-xl text-emerald-500">Choose World</h2>
+                </div>
+
+                <div class="space-y-3 overflow-y-auto max-h-[560px] pr-1 no-scrollbar animate-fade-in" id="modules-list-container">
+                    <!-- Dynamic rendering of Worlds -->
+                </div>
+            </div>
+
+            <!-- ================= LEVEL MAP SELECTOR ================= -->
             <div id="screen-levels" class="hidden space-y-4 flex-1">
                 <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('home')" class="text-sm font-bold text-gray-500 flex items-center gap-1 hover:text-gray-800">
-                        <i class="fa-solid fa-arrow-left"></i> Home
+                    <button onclick="switchScreen('modules')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left"></i> Worlds
                     </button>
-                    <h2 class="kids-title text-xl text-emerald-500">Choose a Level</h2>
+                    <h2 id="level-screen-title" class="kids-title text-lg text-amber-500">Pick Level</h2>
                 </div>
 
                 <div class="space-y-3" id="level-list-container">
-                    <!-- Dynamic rendering of 5 levels with lock status -->
+                    <!-- Levels list -->
                 </div>
             </div>
 
-            <!-- ================= GAME BOARD (PLAY ZONE) ================= -->
+            <!-- ================= LIVE ARCADE PLAYBOARD ================= -->
             <div id="screen-play" class="hidden flex-1 flex flex-col justify-between">
-                <!-- Top Progress status -->
-                <div class="flex items-center justify-between pb-3 border-b-2 border-gray-100">
+                <div class="flex items-center justify-between pb-2 border-b-2 border-gray-100">
                     <button onclick="exitGamePlay()" class="text-xs font-bold text-red-500 flex items-center gap-1">
-                        <i class="fa-solid fa-xmark"></i> Quit
+                        <i class="fa-solid fa-circle-xmark text-lg"></i> Leave
                     </button>
-                    <span id="play-level-indicator" class="font-bold text-gray-700 text-sm">Level 1</span>
+                    <span id="play-level-indicator" class="font-bold text-slate-700 text-sm">Level 1</span>
                     <span id="play-progress-indicator" class="font-bold text-emerald-500 text-sm">Question 1/20</span>
                 </div>
 
-                <!-- Mid Question Display -->
-                <div class="flex-1 flex flex-col justify-center items-center py-4 space-y-4">
-                    <!-- Voice guidance Button -->
-                    <button onclick="repeatQuestionVoice()" class="bg-sky-100 hover:bg-sky-200 text-sky-600 px-3 py-2 rounded-full flex items-center gap-2 text-xs font-bold transition-all shadow-sm">
-                        <i class="fa-solid fa-volume-high text-sm animate-pulse"></i> Tap to hear question
+                <div class="flex-1 flex flex-col justify-center items-center py-2 space-y-3">
+                    <!-- Narrator Audio Button -->
+                    <button onclick="repeatQuestionVoice()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold shadow-sm transform active:scale-95 transition-all">
+                        <span class="animate-bounce text-base">🔊</span> Tap to Hear Narration
                     </button>
 
-                    <!-- Core Question Text -->
-                    <h3 id="play-question-text" class="text-center font-bold text-gray-800 text-xl px-2">How many objects?</h3>
+                    <h3 id="play-question-text" class="text-center font-bold text-slate-800 text-lg px-2">How many objects?</h3>
 
-                    <!-- Render Area for dynamic visual aids (SVGs, emojis, shapes, equations) -->
-                    <div id="play-visual-board" class="w-full bg-white border-4 border-amber-300 rounded-3xl min-h-[160px] flex items-center justify-center p-4 shadow-inner relative">
-                        <!-- Dynamic items/pictures go here -->
+                    <!-- Interactive Visual Board -->
+                    <div id="play-visual-board" class="w-full bg-white border-4 border-amber-400 rounded-3xl min-h-[220px] flex flex-col items-center justify-center p-4 shadow-inner relative overflow-hidden">
+                        <!-- Dynamic visual interactive gameplay rendering -->
                     </div>
                 </div>
 
-                <!-- Multiple Choice Area -->
+                <!-- Choice Board & Animations -->
                 <div class="space-y-3">
                     <div id="play-options-grid" class="grid grid-cols-2 gap-3">
-                        <!-- 4 choices go here dynamically -->
+                        <!-- Choices dynamically injected -->
                     </div>
-                    
-                    <!-- Friendly feedback output text box -->
-                    <div id="play-feedback-text" class="text-center font-bold text-sm h-6 transition-all"></div>
+                    <div id="play-feedback-text" class="text-center font-bold text-base h-6 transition-all"></div>
                 </div>
             </div>
 
-            <!-- ================= LEVEL COMPLETED SUMMARY ================= -->
-            <div id="screen-summary" class="hidden flex-1 flex flex-col justify-center items-center text-center space-y-6">
-                <div class="text-7xl animate-bounce">✨🏆✨</div>
-                <h2 id="summary-headline" class="kids-title text-3xl text-orange-500">Awesome Job!</h2>
-                
-                <div class="bg-white p-6 rounded-3xl border-4 border-amber-400 w-full max-w-xs space-y-3 shadow-md">
-                    <p class="text-gray-500 text-sm font-semibold">YOUR SCORE</p>
-                    <p id="summary-score" class="font-bold text-4xl text-gray-800">18 / 20</p>
-                    
-                    <div id="summary-stars" class="text-yellow-400 text-3xl">⭐⭐⭐</div>
-                    <p id="summary-verdict" class="text-xs text-gray-500 font-bold px-2"></p>
-                </div>
-
-                <div class="flex flex-col gap-2 w-full max-w-xs">
-                    <button id="summary-next-btn" onclick="switchScreen('levels')" class="bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-3 rounded-2xl border-b-4 border-emerald-600 transition-all">
-                        Next Level!
-                    </button>
-                    <button onclick="switchScreen('home')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 rounded-2xl border-b-4 border-gray-600 transition-all text-sm">
-                        Back to Home
-                    </button>
-                </div>
-            </div>
-
-            <!-- ================= PROGRESS & TROPHIES ================= -->
-            <div id="screen-progress" class="hidden space-y-4 flex-1">
+            <!-- ================= INTERACTIVE MASCOT COSTUME SHOP ================= -->
+            <div id="screen-shop" class="hidden space-y-4 flex-1">
                 <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('home')" class="text-sm font-bold text-gray-500 flex items-center gap-1 hover:text-gray-800">
-                        <i class="fa-solid fa-arrow-left"></i> Home
+                    <button onclick="switchScreen('home')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
+                        <i class="fa-solid fa-house"></i> Home
                     </button>
-                    <h2 class="kids-title text-xl text-pink-500">My Rewards</h2>
+                    <h2 class="kids-title text-xl text-pink-500">Mascot Dress-Up</h2>
                 </div>
 
-                <div class="bg-white p-5 rounded-3xl border-2 border-pink-200 text-center space-y-3 shadow-sm">
-                    <span class="text-5xl block">⭐</span>
-                    <h3 class="font-bold text-lg text-gray-700">Total Stars Saved</h3>
-                    <div class="inline-block bg-yellow-100 text-yellow-600 px-6 py-1 rounded-full font-bold text-xl">
-                        <span id="display-progress-stars">0</span> Stars
+                <div class="bg-white p-4 rounded-3xl border-4 border-pink-300 flex items-center justify-around shadow-sm">
+                    <div id="shop-mascot-preview" class="text-7xl relative monster-bounce">
+                        🦊
+                        <span id="shop-equipped-accessory" class="absolute -top-3 -right-3 text-4xl"></span>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-bold text-slate-700 text-sm">Choose Your Outfit!</p>
+                        <p class="text-xs text-slate-400">Unlock accessories using gems!</p>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-3xl border-2 border-pink-200 space-y-3 shadow-sm">
-                    <h4 class="font-bold text-gray-700 text-sm"><i class="fa-solid fa-trophy text-yellow-500"></i> My Level Trophies</h4>
-                    <div class="grid grid-cols-5 gap-2 text-center" id="trophy-grid">
-                        <!-- Dynamic Level Completion Trophy Status -->
-                    </div>
+                <div class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[340px] pr-1" id="shop-items-grid">
+                    <!-- Accessories for the Mascot -->
                 </div>
             </div>
 
-            <!-- ================= STICKERS & BADGES BOOK ================= -->
+            <!-- ================= STICKER ALBUM ================= -->
             <div id="screen-stickers" class="hidden space-y-4 flex-1">
                 <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('home')" class="text-sm font-bold text-gray-500 flex items-center gap-1 hover:text-gray-800">
-                        <i class="fa-solid fa-arrow-left"></i> Home
+                    <button onclick="switchScreen('home')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
+                        <i class="fa-solid fa-house"></i> Home
                     </button>
                     <h2 class="kids-title text-xl text-indigo-500">Sticker Book</h2>
                 </div>
 
-                <p class="text-center text-xs text-gray-500 font-bold">Earn a perfect 20/20 score to unlock cute stickers!</p>
-
-                <div class="grid grid-cols-3 gap-3" id="sticker-grid-container">
-                    <!-- Dynamic stickers -->
+                <div class="grid grid-cols-3 gap-3 overflow-y-auto max-h-[480px] pr-1" id="sticker-grid-container">
+                    <!-- Beautiful collectible stickers -->
                 </div>
             </div>
 
-            <!-- ================= PARENTS LOCK GATE ================= -->
+            <!-- ================= LEVEL COMPLETED VIEW ================= -->
+            <div id="screen-summary" class="hidden flex-1 flex flex-col justify-center items-center text-center space-y-5">
+                <div id="summary-emojis" class="text-8xl animate-bounce">🦖🏆🦖</div>
+                <h2 id="summary-headline" class="kids-title text-3xl text-orange-500">Sensational!</h2>
+                
+                <div class="bg-white p-5 rounded-3xl border-4 border-amber-400 w-full max-w-xs space-y-3 shadow-md">
+                    <p class="text-gray-500 text-xs font-semibold">YOUR SCORE</p>
+                    <p id="summary-score" class="font-bold text-4xl text-gray-800">20 / 20</p>
+                    
+                    <div id="summary-stars" class="text-yellow-400 text-4xl">⭐⭐⭐</div>
+                    
+                    <div class="flex justify-center gap-4 text-sm font-bold text-slate-700 py-1 bg-amber-50 rounded-xl">
+                        <span>💎 +<span id="summary-gems-earned">0</span></span>
+                        <span>⭐ +<span id="summary-stars-earned">0</span></span>
+                    </div>
+
+                    <p id="summary-verdict" class="text-xs text-gray-500 font-bold px-2 leading-tight"></p>
+                </div>
+
+                <div class="flex flex-col gap-2 w-full max-w-xs">
+                    <button id="summary-next-btn" class="bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl border-b-8 border-emerald-600 text-lg">
+                        Next Level!
+                    </button>
+                    <button onclick="switchScreen('home')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 rounded-2xl border-b-4 border-gray-600 text-sm">
+                        Go Home
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= PARENTS LOCK & DASHBOARD ================= -->
             <div id="screen-parents" class="hidden space-y-4 flex-1 flex flex-col justify-center">
-                <div id="parents-gate" class="bg-white p-6 rounded-3xl border-2 border-sky-200 space-y-4 shadow-md">
+                <div id="parents-gate" class="bg-white p-6 rounded-3xl border-4 border-sky-300 space-y-4 shadow-md">
                     <div class="text-center">
                         <span class="text-5xl">🔒</span>
-                        <h2 class="kids-title text-xl text-sky-600 mt-2">Adults Only Zone</h2>
-                        <p class="text-xs text-gray-500">Solve the calculation to prove you are a parent or teacher</p>
+                        <h2 class="kids-title text-xl text-sky-600 mt-2">Parents Security Lock</h2>
+                        <p class="text-xs text-gray-500 mt-1">Please solve to unlock dashboard:</p>
                     </div>
                     <div class="bg-sky-50 p-4 rounded-2xl text-center font-bold text-2xl text-sky-800">
-                        <span id="gate-n1">6</span> + <span id="gate-n2">7</span> = ?
+                        <span id="gate-n1">0</span> + <span id="gate-n2">0</span> = ?
                     </div>
-                    <input type="number" id="gate-answer" placeholder="Type answer" class="w-full text-center border-4 border-sky-300 p-3 rounded-2xl font-bold text-xl focus:outline-none focus:ring-2 focus:ring-sky-400">
-                    <button onclick="verifyParentsGate()" class="w-full bg-sky-400 hover:bg-sky-500 text-white font-bold py-3 rounded-2xl border-b-4 border-sky-600 transition-all text-lg">Verify & Enter</button>
+                    <input type="number" id="gate-answer" placeholder="Type answer" class="w-full text-center border-4 border-sky-300 p-3 rounded-2xl font-bold text-xl">
+                    <button onclick="verifyParentsGate()" class="w-full bg-sky-400 hover:bg-sky-500 text-white font-bold py-3.5 rounded-2xl border-b-4 border-sky-600 text-lg">Unlock Analytics</button>
                     <p id="gate-error-message" class="text-xs text-red-500 text-center font-bold h-4"></p>
                 </div>
 
-                <!-- PARENT DASHBOARD CONTENT -->
-                <div id="parents-dashboard" class="hidden space-y-4 overflow-y-auto max-h-[580px] p-1">
+                <div id="parents-dashboard" class="hidden space-y-4 overflow-y-auto max-h-[580px] p-1 no-scrollbar">
                     <div class="flex justify-between items-center">
-                        <h2 class="kids-title text-xl text-slate-700">Analytics Panel</h2>
-                        <button onclick="resetAllProgress()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg">Reset Game</button>
+                        <h2 class="kids-title text-xl text-slate-700">Analytics Board</h2>
+                        <button onclick="resetAllProgress()" class="bg-rose-500 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg">Reset Data</button>
                     </div>
 
-                    <!-- KPI Statistics Grid -->
                     <div class="grid grid-cols-2 gap-2">
                         <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Accuracy</span>
+                            <span class="text-[10px] text-slate-400 font-bold block">Accuracy</span>
                             <span id="parent-accuracy" class="text-lg font-bold text-slate-800">0%</span>
                         </div>
                         <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Streak</span>
+                            <span class="text-[10px] text-slate-400 font-bold block">Streak</span>
                             <span id="parent-streak" class="text-lg font-bold text-slate-800">0 Days</span>
                         </div>
-                        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center col-span-2">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase block">Completed Levels</span>
-                            <span id="parent-completed-levels" class="text-sm font-bold text-slate-800">None yet</span>
-                        </div>
                     </div>
 
-                    <!-- Progress Charts / Analytics List -->
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-2">
-                        <h4 class="font-bold text-xs text-slate-500 uppercase">Interactive Volume & Sounds</h4>
-                        <div class="flex items-center justify-between text-sm">
-                            <span>Mute All Audio</span>
-                            <button id="music-btn" onclick="toggleAudioMute()" class="bg-emerald-400 text-white font-bold px-3 py-1 rounded-lg text-xs">UNMUTED</button>
-                        </div>
-                    </div>
-
-                    <!-- Config Display -->
-                    <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 space-y-1">
-                        <h4 class="font-bold text-[10px] text-slate-500 uppercase">System DB Parameters</h4>
-                        <p class="text-[9px] font-mono text-slate-600 break-all">App ID: math-bloom-9a271</p>
-                        <p class="text-[9px] font-mono text-slate-600 break-all">Auth Domain: math-bloom-9a271.firebaseapp.com</p>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200">
+                        <h4 class="font-bold text-xs text-slate-500 mb-2 uppercase">Completed Subject Milestones</h4>
+                        <div id="parent-skills-mastery" class="space-y-1 text-xs text-slate-600"></div>
                     </div>
                 </div>
             </div>
@@ -273,746 +292,664 @@
 
         <!-- Global Navigation Dock (Footer) -->
         <div class="bg-white border-t border-gray-100 py-3 px-6 flex justify-around items-center shrink-0">
-            <button onclick="switchScreen('home')" class="flex flex-col items-center space-y-1 text-amber-500 hover:text-amber-600">
-                <span class="text-xl"><i class="fa-solid fa-house"></i></span>
-                <span class="text-[10px] font-bold">Home</span>
+            <button onclick="switchScreen('home')" class="flex flex-col items-center space-y-1 text-amber-500">
+                <span class="text-xl"><i class="fa-solid fa-gamepad"></i></span>
+                <span class="text-[10px] font-bold">Arcade</span>
             </button>
-            <button onclick="switchScreen('levels')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-emerald-500 transition-colors">
-                <span class="text-xl"><i class="fa-solid fa-book-open-reader"></i></span>
-                <span class="text-[10px] font-bold">Levels</span>
+            <button onclick="switchScreen('modules')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-emerald-500">
+                <span class="text-xl"><i class="fa-solid fa-map"></i></span>
+                <span class="text-[10px] font-bold">Map</span>
             </button>
-            <button onclick="switchScreen('progress')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-pink-500 transition-colors">
-                <span class="text-xl"><i class="fa-solid fa-medal"></i></span>
-                <span class="text-[10px] font-bold">Progress</span>
+            <button onclick="switchScreen('shop')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-pink-500">
+                <span class="text-xl"><i class="fa-solid fa-shirt"></i></span>
+                <span class="text-[10px] font-bold">Shop</span>
             </button>
-            <button onclick="switchScreen('stickers')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-indigo-500 transition-colors">
-                <span class="text-xl"><i class="fa-solid fa-face-laugh-wink"></i></span>
+            <button onclick="switchScreen('stickers')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-indigo-500">
+                <span class="text-xl"><i class="fa-solid fa-stamp"></i></span>
                 <span class="text-[10px] font-bold">Stickers</span>
             </button>
         </div>
 
     </div>
 
-    <!-- Script Block containing App Mechanics, Audio Engine & 100 Unique Level Questions -->
+    <!-- AUDIO, GAME LOGIC, PROCEDURAL GENERATION -->
     <script>
-        // --- 1. LOCAL DATA PERSISTENCE & GLOBAL GAME STATE ---
-        const LOCAL_STORAGE_KEY = "MATHBLOOM_PROGRESS_DATA_v1";
-
+        const SAVE_KEY = "MATHBLOOM_ARCADE_SAVE_DATA";
+        
+        // --- GAME SYSTEM PROGRESS STATE ---
         let appProgress = {
             stars: 0,
+            gems: 15,
             streak: 1,
             lastPlayedDate: new Date().toDateString(),
-            completedLevels: [], // lists levels completed (e.g., 1, 2)
-            perfectScoreLevels: [], // lists levels with 20/20 (e.g., 1)
-            totalCorrectAnswers: 0,
-            totalIncorrectAnswers: 0,
-            currentActiveLevel: 1,
-            audioEnabled: true
+            completedLevels: {},
+            perfectLevels: {},
+            totalCorrect: 0,
+            totalIncorrect: 0,
+            audioEnabled: true,
+            selectedMascot: "🦊",
+            selectedAccessory: "",
+            purchasedAccessories: []
         };
 
-        // Load database automatically
-        function loadSavedProgress() {
-            try {
-                const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (saved) {
-                    appProgress = { ...appProgress, ...JSON.parse(saved) };
-                    // Recalculate streak
-                    const todayStr = new Date().toDateString();
-                    if (appProgress.lastPlayedDate !== todayStr) {
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        if (appProgress.lastPlayedDate === yesterday.toDateString()) {
-                            appProgress.streak += 1;
-                        } else {
-                            appProgress.streak = 1;
-                        }
-                        appProgress.lastPlayedDate = todayStr;
-                        saveProgress();
-                    }
-                }
-            } catch (e) {
-                console.error("Local database read failed, loading virtual fallback mode:", e);
-            }
-        }
+        const SHOP_ACCESSORIES = [
+            { id: "crown", emoji: "👑", name: "Royal Crown", cost: 5 },
+            { id: "glasses", emoji: "🕶️", name: "Cool Shades", cost: 10 },
+            { id: "hat", emoji: "🎩", name: "Wizard Hat", cost: 15 },
+            { id: "horns", emoji: "😈", name: "Cute Horns", cost: 20 },
+            { id: "bow", emoji: "🎀", name: "Fancy Bow", cost: 8 }
+        ];
 
-        function saveProgress() {
-            try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appProgress));
-            } catch (e) {
-                console.warn("Storage writing quota restricted:", e);
-            }
-            updateAppIndicators();
-        }
+        const PLAY_THEMES = {
+            dinosaurs: ["🦖", "🦕", "🦎", "🐉"],
+            space: ["🚀", "🪐", "👽", "🛰️", "🛸"],
+            ocean: ["🐙", "🦑", "🐠", "🐡", "🐬", "🐳", "🦈"],
+            fruits: ["🍓", "🍉", "🍒", "🍇", "🍎", "🍊", "🍌"],
+            vehicles: ["🚗", "🚒", "🚑", "🚌", "🛩️", "⛵", "🚂"]
+        };
 
-        function updateAppIndicators() {
-            document.getElementById('global-star-count').innerText = appProgress.stars;
-            document.getElementById('display-progress-stars').innerText = appProgress.stars;
-        }
+        const MODULE_REGISTRY = [
+            { id: 1, name: "Counting Safari", icon: "🦁", desc: "Interactive animal counting and fun feeds." },
+            { id: 2, name: "Number Island", icon: "🔢", desc: "Tap the bouncing balloons and unlock numbers!" },
+            { id: 3, name: "Comparisons Sea", icon: "⚖️", desc: "Sort ocean monsters from biggest to smallest!" },
+            { id: 4, name: "Shapes Magic", icon: "📐", desc: "Recognize stars, diamonds, circles, and squares." },
+            { id: 5, name: "Addition Space", icon: "➕", desc: "Launch rockets with cosmic picture arithmetic!" }
+        ];
 
-        // --- 2. AUDIO SYNTHESIZER ENGINE (Web Audio API for zero latency and offline support) ---
-        let audioContextInstance = null;
+        const MASCOT_MESSAGES = [
+            "You are doing so great!",
+            "Whoa, look at you go!",
+            "Let's solve some puzzles together!",
+            "I love when we learn math!",
+            "Tap my nose! Haha!"
+        ];
 
+        // --- SYNTHESIZER AUDIO ENGINE ---
+        let audioCtx = null;
         function getAudioContext() {
-            if (!audioContextInstance) {
-                audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioContextInstance.state === 'suspended') {
-                audioContextInstance.resume();
-            }
-            return audioContextInstance;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
         }
 
-        function playSoundEffect(style) {
+        function playSoundEffect(type) {
             if (!appProgress.audioEnabled) return;
             try {
                 const ctx = getAudioContext();
                 const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
                 const time = ctx.currentTime;
 
-                if (style === 'success') {
-                    // Ascending major chord (celebratory chime)
+                if (type === 'success') {
+                    // Upward bright arpeggio
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, time); // A4
-                    osc.frequency.setValueAtTime(554.37, time + 0.1); // C#5
-                    osc.frequency.setValueAtTime(659.25, time + 0.2); // E5
-                    osc.frequency.setValueAtTime(880, time + 0.3); // A5
-                    gainNode.gain.setValueAtTime(0, time);
-                    gainNode.gain.linearRampToValueAtTime(0.2, time + 0.05);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
+                    osc.frequency.setValueAtTime(523.25, time); // C5
+                    osc.frequency.setValueAtTime(659.25, time + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, time + 0.2); // G5
+                    osc.frequency.setValueAtTime(1046.50, time + 0.3); // C6
+                    gain.gain.setValueAtTime(0, time);
+                    gain.gain.linearRampToValueAtTime(0.15, time + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
                     osc.start(time);
-                    osc.stop(time + 0.5);
-                } else if (style === 'neutral') {
-                    // Quick low slide for hints/redirection
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(300, time);
-                    osc.frequency.exponentialRampToValueAtTime(150, time + 0.25);
-                    gainNode.gain.setValueAtTime(0.15, time);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.25);
+                    osc.stop(time + 0.55);
+                } else if (type === 'error') {
+                    // Low sad buzz
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, time);
+                    osc.frequency.exponentialRampToValueAtTime(90, time + 0.3);
+                    gain.gain.setValueAtTime(0.15, time);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
                     osc.start(time);
-                    osc.stop(time + 0.25);
-                } else if (style === 'tap') {
-                    // Standard interface button pop sound
+                    osc.stop(time + 0.3);
+                } else if (type === 'tap') {
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(500, time);
-                    osc.frequency.exponentialRampToValueAtTime(250, time + 0.08);
-                    gainNode.gain.setValueAtTime(0.1, time);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
+                    osc.frequency.setValueAtTime(600, time);
+                    osc.frequency.exponentialRampToValueAtTime(400, time + 0.08);
+                    gain.gain.setValueAtTime(0.08, time);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
                     osc.start(time);
                     osc.stop(time + 0.08);
                 }
-            } catch (err) {
-                console.log("Audio not interactive yet on this document window:", err);
+            } catch (e) {
+                console.log("Audio waiting for interaction");
             }
         }
 
-        // --- UPGRADED GENTLE FEMALE VOICE ENGINE ---
-        let systemVoices = [];
-
-        // Pre-load voices for Chrome, Safari, and Edge compatibility
-        function loadVoices() {
-            if (typeof window !== 'undefined' && window.speechSynthesis) {
-                systemVoices = window.speechSynthesis.getVoices();
-            }
-        }
-        if (typeof window !== 'undefined' && window.speechSynthesis) {
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-            loadVoices();
-        }
-
+        // --- GENTLE VOICE NARRATION ---
         function speak(text) {
             if (!appProgress.audioEnabled) return;
             try {
-                window.speechSynthesis.cancel(); // Stop any overlapping speech immediately
+                window.speechSynthesis.cancel();
                 const sentence = new SpeechSynthesisUtterance(text);
                 sentence.lang = 'en-US';
-                
-                // Dynamic search for friendly, warm female voices
-                const femaleVoiceKeywords = ["samantha", "google us english", "zira", "hazel", "karen", "female", "en-us"];
-                let selectedVoice = null;
-
-                // Scan device's voice database for the best match
-                if (systemVoices.length === 0) {
-                    systemVoices = window.speechSynthesis.getVoices();
-                }
-
-                for (let keyword of femaleVoiceKeywords) {
-                    selectedVoice = systemVoices.find(voice => 
-                        voice.name.toLowerCase().includes(keyword) && 
-                        (voice.lang.startsWith('en') || voice.lang.startsWith('en-US'))
-                    );
-                    if (selectedVoice) break;
-                }
-
-                if (selectedVoice) {
-                    sentence.voice = selectedVoice;
-                }
-
-                // Parent/Teacher adjustments for a soft, friendly delivery:
-                sentence.pitch = 1.35; // Slightly higher pitch for a warm, bright tone
-                sentence.rate = 0.82;  // Soft, clear, and patient pacing
-                
+                sentence.pitch = 1.3;
+                sentence.rate = 0.85;
                 window.speechSynthesis.speak(sentence);
             } catch (e) {
-                console.warn("Synthesis engine offline:", e);
+                console.warn(e);
             }
         }
 
+        // --- INTERACTIVE DRAG-AND-DROP GAMEPLAY CONVERTER ---
+        function generateModuleQuestion(moduleId, level, qIndex) {
+            const themes = Object.keys(PLAY_THEMES);
+            const selectedThemeKey = themes[(qIndex + level) % themes.length];
+            const themeSet = PLAY_THEMES[selectedThemeKey];
+            const emoji = themeSet[qIndex % themeSet.length];
 
-        // --- 3. 100 UNIQUE MATHEMATICAL QUESTIONS (5 Levels × 20 Questions) ---
-        const ALL_MATH_LEVELS = {
-            1: [
-                { id: 101, type: "count", question: "Count the apples. How many do you see?", count: 3, itemEmoji: "🍎", options: [2, 3, 4, 5], answer: 3 },
-                { id: 102, type: "count", question: "How many yellow bananas can you find?", count: 5, itemEmoji: "🍌", options: [3, 4, 5, 6], answer: 5 },
-                { id: 103, type: "count", question: "Count the friendly teddy bears!", count: 2, itemEmoji: "🧸", options: [1, 2, 3, 4], answer: 2 },
-                { id: 104, type: "count", question: "How many colorful balloons are here?", count: 4, itemEmoji: "🎈", options: [2, 3, 4, 5], answer: 4 },
-                { id: 105, type: "choose_number", question: "Tap the number: Three!", options: [2, 3, 5, 1], answer: 3 },
-                { id: 106, type: "choose_number", question: "Tap the number: Five!", options: [4, 5, 6, 3], answer: 5 },
-                { id: 107, type: "sequence", question: "What is the missing next number? 1, 2, 3, __?", options: [2, 4, 5, 6], answer: 4 },
-                { id: 108, type: "sequence", question: "Which number is missing in the pattern? 2, __, 4, 5?", options: [1, 3, 6, 5], answer: 3 },
-                { id: 109, type: "match", question: "Which group has exactly 2 stars?", layout: "match_stars", options: [1, 2, 3, 4], answer: 2 },
-                { id: 110, type: "choose_number", question: "Tap the number: One!", options: [3, 1, 2, 4], answer: 1 },
-                { id: 111, type: "comparison", question: "Which side has MORE cute puppies?", comparison: "more", layout: "puppies_compare", options: ["Left Side", "Right Side"], answer: "Left Side" },
-                { id: 112, type: "comparison", question: "Which side has FEWER sweet cherries?", comparison: "less", layout: "cherries_compare", options: ["Left Side", "Right Side"], answer: "Right Side" },
-                { id: 113, type: "ordering", question: "Put the numbers in order. What comes first?", options: [1, 2, 3, 4], answer: 1 },
-                { id: 114, type: "ordering", question: "If we go from smallest to largest, what comes last?", options: [3, 4, 5, 6], answer: 6 },
-                { id: 115, type: "count", question: "How many fingers is the hand holding up?", count: 5, itemEmoji: "🖐️", options: [3, 4, 5, 2], answer: 5 },
-                { id: 116, type: "count", question: "Count the sparkling yellow stars!", count: 4, itemEmoji: "⭐", options: [2, 3, 4, 5], answer: 4 },
-                { id: 117, type: "count", question: "Count the sweet red flowers!", count: 3, itemEmoji: "🌸", options: [2, 3, 4, 1], answer: 3 },
-                { id: 118, type: "sequence", question: "What is the missing number? 3, 4, __, 6?", options: [2, 5, 7, 8], answer: 5 },
-                { id: 119, type: "choose_number", question: "Tap the number: Two!", options: [1, 2, 3, 4], answer: 2 },
-                { id: 120, type: "review", question: "Count the bouncing balls. How many?", count: 1, itemEmoji: "⚽", options: [1, 2, 3, 4], answer: 1 }
-            ],
-            2: [
-                { id: 201, type: "count", question: "How many red strawberries can you count?", count: 12, itemEmoji: "🍓", options: [10, 11, 12, 13], answer: 12 },
-                { id: 202, type: "count", question: "Count all the green frogs on the pads!", count: 15, itemEmoji: "🐸", options: [12, 14, 15, 16], answer: 15 },
-                { id: 203, type: "choose_number", question: "Can you find and tap the number: Twelve?", options: [10, 12, 14, 11], answer: 12 },
-                { id: 204, type: "choose_number", question: "Can you find and tap the number: Seventeen?", options: [15, 16, 17, 18], answer: 17 },
-                { id: 205, type: "sequence", question: "What is the missing number? 10, 11, __, 13?", options: [9, 12, 14, 15], answer: 12 },
-                { id: 206, type: "sequence", question: "What number comes next? 14, 15, 16, __?", options: [15, 17, 18, 19], answer: 17 },
-                { id: 207, type: "comparison", question: "Which number is the BIGGEST?", options: [8, 12, 15, 3], answer: 15 },
-                { id: 208, type: "comparison", question: "Which number is the SMALLEST?", options: [18, 14, 9, 20], answer: 9 },
-                { id: 209, type: "shape", question: "What shape is this yellow block?", shape: "circle", options: ["Circle", "Square", "Triangle", "Rectangle"], answer: "Circle" },
-                { id: 210, type: "shape", question: "What shape is this orange gift box?", shape: "square", options: ["Circle", "Square", "Triangle", "Rectangle"], answer: "Square" },
-                { id: 211, type: "shape", question: "What shape is this green slice of pizza?", shape: "triangle", options: ["Circle", "Square", "Triangle", "Rectangle"], answer: "Triangle" },
-                { id: 212, type: "shape", question: "What shape is this dark blue envelope?", shape: "rectangle", options: ["Circle", "Square", "Triangle", "Rectangle"], answer: "Rectangle" },
-                { id: 213, type: "shape", question: "What shape is this purple Easter egg?", shape: "oval", options: ["Oval", "Circle", "Triangle", "Heart"], answer: "Oval" },
-                { id: 214, type: "shape", question: "What shape is the bright star up in the sky?", shape: "star", options: ["Circle", "Star", "Heart", "Square"], answer: "Star" },
-                { id: 215, type: "shape", question: "What shape represents love?", shape: "heart", options: ["Triangle", "Circle", "Heart", "Star"], answer: "Heart" },
-                { id: 216, type: "shape", question: "Match the shape! Which one is a square?", shapeLayout: "match_square", options: ["Pink Circle", "Red Square", "Yellow Triangle"], answer: "Red Square" },
-                { id: 217, type: "shape_sorting", question: "Which shape has exactly THREE corners?", options: ["Circle", "Square", "Triangle", "Oval"], answer: "Triangle" },
-                { id: 218, type: "shape_puzzle", question: "I look like a stretched-out circle. What shape am I?", options: ["Circle", "Oval", "Rectangle", "Square"], answer: "Oval" },
-                { id: 219, type: "comparison", question: "Is 15 bigger or smaller than 9?", options: ["Bigger", "Smaller"], answer: "Bigger" },
-                { id: 220, type: "review", question: "Count the shiny stars! How many?", count: 20, itemEmoji: "⭐", options: [18, 19, 20, 15], answer: 20 }
-            ],
-            3: [
-                { id: 301, type: "picture_addition", question: "How many apples do we have in total?", equation: "2 + 1", visual: "🍎🍎 + 🍎", options: [2, 3, 4, 5], answer: 3 },
-                { id: 302, type: "picture_addition", question: "Count the yummy oranges. Add them up!", equation: "3 + 2", visual: "🍊🍊🍊 + 🍊🍊", options: [4, 5, 6, 7], answer: 5 },
-                { id: 303, type: "addition", question: "Add the flying butterflies!", equation: "4 + 1", visual: "🦋🦋🦋🦋 + 🦋", options: [3, 4, 5, 6], answer: 5 },
-                { id: 304, type: "addition", question: "Add the colorful balloons!", equation: "2 + 2", visual: "🎈🎈 + 🎈🎈", options: [2, 3, 4, 5], answer: 4 },
-                { id: 305, type: "equation", question: "What is 3 + 3?", options: [5, 6, 7, 8], answer: 6 },
-                { id: 306, type: "equation", question: "What is 5 + 2?", options: [6, 7, 8, 9], answer: 7 },
-                { id: 307, type: "equation", question: "What is 1 + 6?", options: [5, 6, 7, 8], answer: 7 },
-                { id: 308, type: "equation", question: "What is 4 + 4?", options: [6, 7, 8, 9], answer: 8 },
-                { id: 309, type: "missing_addend", question: "Fill in the blank: 2 + __ = 4?", options: [1, 2, 3, 4], answer: 2 },
-                { id: 310, type: "missing_addend", question: "Fill in the blank: 5 + __ = 6?", options: [1, 2, 3, 0], answer: 1 },
-                { id: 311, type: "equation", question: "What is 7 + 3?", options: [8, 9, 10, 7], answer: 10 },
-                { id: 312, type: "equation", question: "What is 8 + 1?", options: [7, 8, 9, 10], answer: 9 },
-                { id: 313, type: "addition_story", question: "You have 2 toy cars. Your dad gives you 1 more. How many now?", options: [2, 3, 4, 5], answer: 3 },
-                { id: 314, type: "addition_story", question: "There are 3 little birds on a branch. 2 more fly over. How many?", options: [4, 5, 6, 3], answer: 5 },
-                { id: 315, type: "true_false", question: "Is this correct? 3 + 2 = 5", options: ["True", "False"], answer: "True" },
-                { id: 316, type: "true_false", question: "Is this correct? 4 + 1 = 6", options: ["True", "False"], answer: "False" },
-                { id: 317, type: "dice", question: "Count the dots on the two dice blocks!", dice: [2, 3], options: [4, 5, 6, 7], answer: 5 },
-                { id: 318, type: "dice", question: "Add the dots on these dice!", dice: [4, 2], options: [5, 6, 7, 8], answer: 6 },
-                { id: 319, type: "equation", question: "What is 0 + 5?", options: [0, 4, 5, 10], answer: 5 },
-                { id: 320, type: "review", question: "Double test! What is 5 + 5?", options: [8, 9, 10, 11], answer: 10 }
-            ],
-            4: [
-                { id: 401, type: "picture_subtraction", question: "We have 3 apples. Take away 1 apple. How many are left?", equation: "3 - 1", visual: "🍎🍎🍎 - 🍎", options: [1, 2, 3, 4], answer: 2 },
-                { id: 402, type: "picture_subtraction", question: "We have 5 sweet strawberries. Take away 2. How many are left?", equation: "5 - 2", visual: "🍓🍓🍓🍓🍓 - 🍓🍓", options: [2, 3, 4, 5], answer: 3 },
-                { id: 403, type: "subtraction", question: "There are 4 lovely flowers. Pick 1 away.", equation: "4 - 1", visual: "🌸🌸🌸🌸 - 🌸", options: [2, 3, 4, 1], answer: 3 },
-                { id: 404, type: "subtraction", question: "We have 2 sweet cupcakes. Eat 1 cupcake.", equation: "2 - 1", visual: "🧁🧁 - 🧁", options: [0, 1, 2, 3], answer: 1 },
-                { id: 405, type: "equation", question: "What is 5 - 1?", options: [3, 4, 5, 2], answer: 4 },
-                { id: 406, type: "equation", question: "What is 6 - 3?", options: [2, 3, 4, 5], answer: 3 },
-                { id: 407, type: "equation", question: "What is 4 - 2?", options: [1, 2, 3, 4], answer: 2 },
-                { id: 408, type: "equation", question: "What is 7 - 4?", options: [2, 3, 4, 5], answer: 3 },
-                { id: 409, type: "missing_subtrahend", question: "Fill in the blank: 5 - __ = 4?", options: [1, 2, 3, 0], answer: 1 },
-                { id: 410, type: "missing_subtrahend", question: "Fill in the blank: 3 - __ = 1?", options: [1, 2, 3, 0], answer: 2 },
-                { id: 411, type: "equation", question: "What is 8 - 2?", options: [5, 6, 7, 8], answer: 6 },
-                { id: 412, type: "equation", question: "What is 10 - 5?", options: [3, 4, 5, 6], answer: 5 },
-                { id: 413, type: "subtraction_story", question: "You have 4 balloons. 1 pops! How many do you have left?", options: [2, 3, 4, 5], answer: 3 },
-                { id: 414, type: "subtraction_story", question: "There are 5 frogs on a lilypad. 2 jump off. How many are left?", options: [2, 3, 4, 1], answer: 3 },
-                { id: 415, type: "true_false", question: "Is this correct? 5 - 2 = 3", options: ["True", "False"], answer: "True" },
-                { id: 416, type: "true_false", question: "Is this correct? 6 - 1 = 4", options: ["True", "False"], answer: "False" },
-                { id: 417, type: "equation", question: "What is 9 - 3?", options: [5, 6, 7, 8], answer: 6 },
-                { id: 418, type: "equation", question: "What is 7 - 7?", options: [0, 1, 7, 14], answer: 0 },
-                { id: 419, type: "equation", question: "What is 8 - 5?", options: [2, 3, 4, 5], answer: 3 },
-                { id: 420, type: "review", question: "Super review! What is 10 - 2?", options: [6, 7, 8, 9], answer: 8 }
-            ],
-            5: [
-                { id: 501, type: "count", question: "Let's count everything combined! How many delicious cherries?", count: 7, itemEmoji: "🍒", options: [5, 6, 7, 8], answer: 7 },
-                { id: 502, type: "shape", question: "Which shape has five points, like stars in the sky?", options: ["Circle", "Star", "Heart", "Triangle"], answer: "Star" },
-                { id: 503, type: "comparison", question: "Which side has MORE yellow stars?", comparison: "more", layout: "stars_compare", options: ["Left Side", "Right Side"], answer: "Right Side" },
-                { id: 504, type: "addition", question: "What is 6 + 3?", options: [7, 8, 9, 10], answer: 9 },
-                { id: 505, type: "subtraction", question: "What is 9 - 4?", options: [3, 4, 5, 6], answer: 5 },
-                { id: 506, type: "pattern", question: "What is next? Red, Green, Red, Green, __?", options: ["Red", "Green"], answer: "Red" },
-                { id: 507, type: "pattern", question: "What is next? Circle, Square, Circle, Square, __?", options: ["Circle", "Square", "Triangle"], answer: "Circle" },
-                { id: 508, type: "sequence", question: "What number comes next? 17, 18, 19, __?", options: [18, 19, 20, 21], answer: 20 },
-                { id: 509, type: "comparison", question: "Which number is BIGGER?", options: [14, 18], answer: 18 },
-                { id: 510, type: "comparison", question: "Which number is SMALLER?", options: [12, 7], answer: 7 },
-                { id: 511, type: "addition_story", question: "You have 3 green balloons. Your mom gives you 3 more. How many now?", options: [5, 6, 7, 8], answer: 6 },
-                { id: 512, type: "subtraction_story", question: "You have 10 sweet cookies. You eat 3. How many are left?", options: [5, 6, 7, 8], answer: 7 },
-                { id: 513, type: "sequence", question: "What is the missing number? 8, 9, __, 11?", options: [7, 10, 12, 13], answer: 10 },
-                { id: 514, type: "equation", question: "What is 5 + 4?", options: [8, 9, 10, 7], answer: 9 },
-                { id: 515, type: "equation", question: "What is 8 - 4?", options: [3, 4, 5, 6], answer: 4 },
-                { id: 516, type: "true_false", question: "Is this statement correct? 2 + 3 = 5", options: ["True", "False"], answer: "True" },
-                { id: 517, type: "true_false", question: "Is this statement correct? 5 - 1 = 3", options: ["True", "False"], answer: "False" },
-                { id: 518, type: "count", question: "How many sweet strawberries?", count: 11, itemEmoji: "🍓", options: [9, 10, 11, 12], answer: 11 },
-                { id: 519, type: "shape", question: "Which shape has no sharp corners and looks like a wheel?", options: ["Circle", "Triangle", "Square", "Rectangle"], answer: "Circle" },
-                { id: 520, type: "review", question: "Final challenge! What is 5 + 2 - 1?", options: [5, 6, 7, 8], answer: 6 }
-            ]
-        };
+            switch(moduleId) {
+                case 1: // Counting Safari
+                    const count = Math.max(1, (qIndex % 8) + 1);
+                    return {
+                        type: "feed_monster",
+                        count: count,
+                        emoji: emoji,
+                        question: `Barnaby the Monster is hungry! Drag & Feed him exactly ${count} ${selectedThemeKey}!`,
+                        speakText: `Barnaby the Monster is hungry! Drag and Feed him exactly ${count} items!`
+                    };
+                case 2: // Number Island
+                    const num = Math.max(1, (qIndex * 2 + level) % 20);
+                    return {
+                        type: "tap_balloon",
+                        targetNum: num,
+                        question: `Pop the bouncing balloon containing the correct number: ${num}!`,
+                        options: shuffleOptions([num, num+1, num+2, Math.max(0, num-1)]),
+                        answer: num,
+                        speakText: `Pop the bouncing balloon containing the correct number: ${num}!`
+                    };
+                case 3: // Comparisons Sea
+                    const valA = Math.max(1, (qIndex * 3) % 15);
+                    const valB = Math.max(1, (qIndex * 3 + 4) % 15);
+                    const compType = qIndex % 2 === 0 ? "BIGGER" : "SMALLER";
+                    const correctVal = compType === "BIGGER" ? Math.max(valA, valB) : Math.min(valA, valB);
+                    return {
+                        type: "comparison",
+                        leftVal: valA,
+                        rightVal: valB,
+                        emoji: emoji,
+                        question: `Which set of ${selectedThemeKey} is ${compType}?`,
+                        options: [valA, valB],
+                        answer: correctVal,
+                        speakText: `Which set has the ${compType} amount?`
+                    };
+                case 4: // Shapes Magic
+                    const shapesList = ["Circle", "Square", "Triangle", "Star", "Heart"];
+                    const targetShape = shapesList[qIndex % shapesList.length];
+                    const others = shapesList.filter(s => s !== targetShape);
+                    return {
+                        type: "shape",
+                        shape: targetShape.toLowerCase(),
+                        question: `Find and tap the name of this shiny shape!`,
+                        options: shuffleOptions([targetShape, others[0], others[1], others[2]]),
+                        answer: targetShape,
+                        speakText: `Find and tap the name of this shiny shape!`
+                    };
+                case 5: // Addition Space
+                    const a1 = Math.max(1, qIndex % 5 + level);
+                    const a2 = Math.max(1, (qIndex + 2) % 4 + 1);
+                    const sum = a1 + a2;
+                    return {
+                        type: "addition",
+                        visual: `${emoji.repeat(a1)} + ${emoji.repeat(a2)}`,
+                        question: `Rocket Launch Code! What is ${a1} + ${a2}?`,
+                        options: shuffleOptions([sum, sum+1, Math.max(1, sum-1), sum+2]),
+                        answer: sum,
+                        speakText: `What is ${a1} plus ${a2}?`
+                    };
+            }
+        }
 
-        const ENCOURAGEMENT_WORDS = [
-            "Great Job!",
-            "Awesome!",
-            "Fantastic!",
-            "You Did It!",
-            "Keep Going!",
-            "Brilliant!",
-            "Super Math Star!"
-        ];
+        function shuffleOptions(arr) {
+            return arr.map(a => String(a)).sort(() => Math.random() - 0.5);
+        }
 
-        // --- 4. GAME PLAYPLAY ENGINE ---
+        // --- GAMEPLAY SESSION CONTROLLER ---
         let currentGame = {
-            level: 1,
-            questions: [],
+            moduleId: 1,
+            levelIndex: 1,
             currentIndex: 0,
             score: 0,
-            totalAnswered: 0,
-            incorrectAttempts: 0
+            incorrectAttempts: 0,
+            questions: []
         };
 
-        // Navigation Controllers
         function switchScreen(screenName) {
             playSoundEffect('tap');
-
-            // Hide all views
-            const screens = ['home', 'levels', 'play', 'summary', 'progress', 'parents', 'stickers'];
+            const screens = ['home', 'modules', 'levels', 'play', 'summary', 'parents', 'shop', 'stickers'];
             screens.forEach(s => {
                 const el = document.getElementById(`screen-${s}`);
                 if (el) el.classList.add('hidden');
             });
 
-            // Show active
             const activeEl = document.getElementById(`screen-${screenName}`);
             if (activeEl) activeEl.classList.remove('hidden');
 
-            // Setup custom callbacks
-            if (screenName === 'levels') {
-                renderLevelsMenu();
-            } else if (screenName === 'progress') {
-                renderProgressStatus();
-            } else if (screenName === 'parents') {
-                setupParentsGate();
-            } else if (screenName === 'stickers') {
-                renderStickerBook();
-            }
+            if (screenName === 'modules') renderModulesMenu();
+            if (screenName === 'shop') renderShopInventory();
+            if (screenName === 'stickers') renderStickerBook();
+            if (screenName === 'home') renderHomeMascot();
         }
 
-        // Render progression map (locked/unlocked)
-        function renderLevelsMenu() {
+        function renderHomeMascot() {
+            const mascotHome = document.getElementById('mascot-home');
+            mascotHome.innerHTML = `
+                ${appProgress.selectedMascot}
+                <span class="absolute -top-3 -right-3 text-4xl">${appProgress.selectedAccessory}</span>
+            `;
+        }
+
+        function petMascot() {
+            playSoundEffect('success');
+            const bubble = document.getElementById('mascot-bubble');
+            bubble.innerText = MASCOT_MESSAGES[Math.floor(Math.random() * MASCOT_MESSAGES.length)];
+            triggerVisualParticles(window.innerWidth / 2, window.innerHeight / 2.5);
+        }
+
+        function renderModulesMenu() {
+            const container = document.getElementById('modules-list-container');
+            container.innerHTML = "";
+
+            MODULE_REGISTRY.forEach(mod => {
+                container.innerHTML += `
+                    <div onclick="selectModule(${mod.id})" class="p-5 rounded-3xl border-4 border-slate-200 bg-white shadow-md flex items-center space-x-3 hover:scale-[1.02] cursor-pointer transition-transform">
+                        <span class="text-5xl">${mod.icon}</span>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-gray-800 text-base">${mod.name}</h3>
+                            <p class="text-xs text-gray-500 leading-tight">${mod.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectModule(moduleId) {
+            currentGame.moduleId = moduleId;
+            const targetMod = MODULE_REGISTRY.find(m => m.id === moduleId);
+            document.getElementById('level-screen-title').innerText = targetMod.name;
+
             const container = document.getElementById('level-list-container');
             container.innerHTML = "";
 
             for (let lvl = 1; lvl <= 5; lvl++) {
-                const isCompleted = appProgress.completedLevels.includes(lvl);
-                const isUnlocked = lvl === 1 || appProgress.completedLevels.includes(lvl - 1);
-                
-                let lockIcon = "";
-                let cardStyle = "";
-                let buttonMarkup = "";
+                const levelKey = `${moduleId}_${lvl}`;
+                const prevLevelKey = `${moduleId}_${lvl-1}`;
+                const isCompleted = appProgress.completedLevels[levelKey];
+                const isUnlocked = lvl === 1 || appProgress.completedLevels[prevLevelKey];
 
                 if (isUnlocked) {
-                    cardStyle = "border-emerald-200 bg-white shadow-sm";
-                    lockIcon = `<span class="text-emerald-500 font-bold text-xs"><i class="fa-solid fa-lock-open mr-1"></i> Ready to play!</span>`;
-                    buttonMarkup = `<button onclick="launchLevelGame(${lvl})" class="bg-emerald-400 text-white px-5 py-2 rounded-2xl font-bold text-sm hover:bg-emerald-500 transition-all shadow-md">Play</button>`;
-                } else {
-                    cardStyle = "border-gray-100 bg-gray-50 opacity-60";
-                    lockIcon = `<span class="text-gray-400 font-bold text-xs"><i class="fa-solid fa-lock mr-1"></i> Locked</span>`;
-                    buttonMarkup = `<span class="text-xs text-gray-400 font-semibold px-2">Solve previous level to open</span>`;
-                }
-
-                container.innerHTML += `
-                    <div class="p-4 rounded-3xl border-2 flex items-center justify-between ${cardStyle}">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-4xl">${lvl === 1 ? '🍒' : lvl === 2 ? '⭐' : lvl === 3 ? '➕' : lvl === 4 ? '➖' : '🏆'}</span>
+                    container.innerHTML += `
+                        <div class="p-4 rounded-3xl border-4 border-emerald-300 bg-white flex items-center justify-between shadow-sm">
                             <div>
-                                <h3 class="font-bold text-gray-800 text-base">Level ${lvl}</h3>
-                                <div class="flex flex-col">
-                                    ${lockIcon}
-                                    ${isCompleted ? '<span class="text-xs text-amber-500 font-bold">⭐ Completed!</span>' : ''}
-                                </div>
+                                <span class="font-bold text-gray-800">Mission ${lvl}</span>
+                                ${isCompleted ? '<span class="block text-xs text-amber-500 font-bold">⭐ Solved!</span>' : '<span class="block text-xs text-emerald-500 font-bold">Unlocked</span>'}
                             </div>
+                            <button onclick="launchGamePlay(${lvl})" class="bg-emerald-400 text-white font-bold py-2 px-5 rounded-2xl border-b-4 border-emerald-600">Enter</button>
                         </div>
-                        ${buttonMarkup}
-                    </div>
-                `;
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <div class="p-4 rounded-3xl border-4 border-gray-100 bg-gray-50 opacity-60 flex items-center justify-between">
+                            <div><span class="font-bold text-gray-400">Mission ${lvl}</span></div>
+                            <span class="text-xl text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                        </div>
+                    `;
+                }
             }
+            switchScreen('levels');
         }
 
-        // Launch selected level
-        function launchLevelGame(lvl) {
-            currentGame.level = lvl;
-            // Retrieve questions, then clone/shuffle to ensure infinite variety and unique experiences
-            let pool = [...ALL_MATH_LEVELS[lvl]];
-            pool.sort(() => Math.random() - 0.5);
-
-            currentGame.questions = pool;
+        function launchGamePlay(lvl) {
+            currentGame.levelIndex = lvl;
             currentGame.currentIndex = 0;
             currentGame.score = 0;
-            currentGame.totalAnswered = 0;
             currentGame.incorrectAttempts = 0;
+            currentGame.questions = [];
+
+            for (let i = 0; i < 20; i++) {
+                currentGame.questions.push(generateModuleQuestion(currentGame.moduleId, lvl, i));
+            }
 
             switchScreen('play');
             displayActiveQuestion();
         }
 
+        // --- SANDBOX LIVE FEED PLAYBOARD ENGINE ---
+        let itemsFedCount = 0;
+
         function displayActiveQuestion() {
-            const currentQuestion = currentGame.questions[currentGame.currentIndex];
-            
-            document.getElementById('play-level-indicator').innerText = `Level ${currentGame.level}`;
+            const task = currentGame.questions[currentGame.currentIndex];
+            document.getElementById('play-level-indicator').innerText = `Level ${currentGame.levelIndex}`;
             document.getElementById('play-progress-indicator').innerText = `Question ${currentGame.currentIndex + 1}/20`;
-            document.getElementById('play-question-text').innerText = currentQuestion.question;
+            document.getElementById('play-question-text').innerText = task.question;
             document.getElementById('play-feedback-text').innerText = "";
 
-            // Visual Rendering Engine (SVGs & HTML structures to show math items cleanly)
-            const visualBoard = document.getElementById('play-visual-board');
-            visualBoard.innerHTML = "";
+            const board = document.getElementById('play-visual-board');
+            board.innerHTML = "";
 
-            if (currentQuestion.type === 'count' || currentQuestion.type === 'review') {
-                // Show grid of emojis
-                let flexWrap = "flex-wrap justify-center gap-3";
-                if (currentQuestion.count > 10) flexWrap = "flex-wrap justify-center gap-1.5 text-2xl";
-                
-                let emojiMarkup = `<div class="flex ${flexWrap} items-center justify-center text-4xl">`;
-                for (let i = 0; i < currentQuestion.count; i++) {
-                    emojiMarkup += `<span class="transform transition-transform active:scale-125 cursor-pointer">${currentQuestion.itemEmoji}</span>`;
-                }
-                emojiMarkup += `</div>`;
-                visualBoard.innerHTML = emojiMarkup;
-
-            } else if (currentQuestion.type === 'shape') {
-                // Generate clean, inline geometric shapes using crisp vector CSS paths
-                let shapeMarkup = "";
-                const shapeName = currentQuestion.shape;
-
-                if (shapeName === 'circle') {
-                    shapeMarkup = `<div class="w-24 h-24 rounded-full bg-yellow-400 border-4 border-yellow-500 shadow-md"></div>`;
-                } else if (shapeName === 'square') {
-                    shapeMarkup = `<div class="w-24 h-24 bg-orange-400 border-4 border-orange-500 shadow-md rounded-xl"></div>`;
-                } else if (shapeName === 'triangle') {
-                    shapeMarkup = `<div class="w-0 h-0 border-l-[50px] border-l-transparent border-r-[50px] border-r-transparent border-b-[86px] border-b-emerald-400 drop-shadow-md"></div>`;
-                } else if (shapeName === 'rectangle') {
-                    shapeMarkup = `<div class="w-32 h-20 bg-sky-400 border-4 border-sky-500 shadow-md rounded-xl"></div>`;
-                } else if (shapeName === 'oval') {
-                    shapeMarkup = `<div class="w-20 h-28 rounded-[50%] bg-purple-400 border-4 border-purple-500 shadow-md"></div>`;
-                } else if (shapeName === 'star') {
-                    shapeMarkup = `<span class="text-7xl text-yellow-400 drop-shadow-md"><i class="fa-solid fa-star"></i></span>`;
-                } else if (shapeName === 'heart') {
-                    shapeMarkup = `<span class="text-7xl text-rose-500 drop-shadow-md animate-pulse"><i class="fa-solid fa-heart"></i></span>`;
-                } else {
-                    shapeMarkup = `<span class="text-6xl">❓</span>`;
-                }
-                visualBoard.innerHTML = shapeMarkup;
-
-            } else if (currentQuestion.type === 'picture_addition' || currentQuestion.type === 'addition') {
-                // Clean visual horizontal calculation
-                visualBoard.innerHTML = `
-                    <div class="flex items-center space-x-3 font-bold text-3xl text-orange-600">
-                        <span class="text-2xl">${currentQuestion.visual}</span>
+            if (task.type === 'feed_monster') {
+                itemsFedCount = 0;
+                board.innerHTML = `
+                    <div class="flex flex-col items-center justify-center w-full space-y-4">
+                        <!-- Chomp Monster -->
+                        <div id="eating-monster" class="text-7xl monster-bounce transition-transform duration-150">👾</div>
+                        
+                        <!-- Drag items reservoir -->
+                        <div class="flex gap-2 justify-center py-2 bg-amber-50 rounded-2xl w-full flex-wrap" id="draggable-items-container">
+                            <!-- Items kids can tap to feed -->
+                        </div>
                     </div>
                 `;
-            } else if (currentQuestion.type === 'picture_subtraction') {
-                // Show visual representations with clean horizontal math lines
-                visualBoard.innerHTML = `
-                    <div class="flex flex-col items-center space-y-2">
-                        <div class="text-2xl font-bold text-rose-500">${currentQuestion.visual}</div>
-                        <div class="bg-gray-100 px-4 py-1.5 rounded-full text-xs font-bold text-gray-500">${currentQuestion.equation}</div>
-                    </div>
-                `;
-            } else if (currentQuestion.type === 'comparison' && currentQuestion.layout) {
-                // Side-by-side comparison boxes with thick rounded lines
-                let leftContent = "";
-                let rightContent = "";
-
-                if (currentQuestion.layout === 'puppies_compare') {
-                    leftContent = "🐶🐶🐶";
-                    rightContent = "🐶";
-                } else if (currentQuestion.layout === 'cherries_compare') {
-                    leftContent = "🍒🍒🍒🍒";
-                    rightContent = "🍒🍒";
-                } else if (currentQuestion.layout === 'stars_compare') {
-                    leftContent = "⭐";
-                    rightContent = "⭐⭐⭐";
+                const container = document.getElementById('draggable-items-container');
+                for (let i = 0; i < task.count; i++) {
+                    container.innerHTML += `
+                        <span onclick="feedMonsterItem(this)" class="text-4xl cursor-pointer hover:scale-125 transition-transform active:scale-95 bg-white p-1 rounded-xl shadow-sm border border-amber-200">${task.emoji}</span>
+                    `;
                 }
 
-                visualBoard.innerHTML = `
-                    <div class="w-full flex justify-around items-center">
-                        <div class="p-4 border-4 border-sky-300 rounded-2xl bg-sky-50 text-center font-bold text-base w-5/12 flex flex-col items-center">
-                            <span class="text-xs text-sky-600 mb-2">LEFT</span>
-                            <span class="text-2xl leading-relaxed">${leftContent}</span>
-                        </div>
-                        <span class="text-2xl font-bold text-gray-400">vs</span>
-                        <div class="p-4 border-4 border-sky-300 rounded-2xl bg-sky-50 text-center font-bold text-base w-5/12 flex flex-col items-center">
-                            <span class="text-xs text-sky-600 mb-2">RIGHT</span>
-                            <span class="text-2xl leading-relaxed">${rightContent}</span>
-                        </div>
-                    </div>
-                `;
-            } else if (currentQuestion.type === 'dice') {
-                // Real-time rendering of dice configurations using grid configurations
-                const d1 = currentQuestion.dice[0];
-                const d2 = currentQuestion.dice[1];
-                visualBoard.innerHTML = `
-                    <div class="flex items-center space-x-4">
-                        <div class="w-14 h-14 bg-white border-4 border-gray-800 rounded-2xl flex items-center justify-center font-bold text-3xl text-gray-800 shadow-md">
-                            ${d1}
-                        </div>
-                        <span class="text-3xl font-bold text-emerald-500">+</span>
-                        <div class="w-14 h-14 bg-white border-4 border-gray-800 rounded-2xl flex items-center justify-center font-bold text-3xl text-gray-800 shadow-md">
-                            ${d2}
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Standard visual fallback box using clean emoji sets
-                visualBoard.innerHTML = `
-                    <div class="text-6xl font-extrabold text-orange-500 tracking-wide animate-pulse">🌸 Math!</div>
-                `;
-            }
-
-            // Shuffle option list buttons so kids learn actual patterns over spatial layouts
-            let options = [...currentQuestion.options];
-            const optionGrid = document.getElementById('play-options-grid');
-            optionGrid.innerHTML = "";
-
-            options.forEach(option => {
-                optionGrid.innerHTML += `
-                    <button onclick="checkAnswer('${option}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 active:scale-95 transition-all py-4 text-xl font-bold rounded-2xl text-amber-800 flex items-center justify-center shadow-md">
-                        ${option}
+                // Answer controller buttons
+                const grid = document.getElementById('play-options-grid');
+                grid.innerHTML = `
+                    <button onclick="checkSelectedAnswer('done')" class="col-span-2 bg-emerald-400 hover:bg-emerald-500 border-b-8 border-emerald-600 text-white font-bold py-4 rounded-3xl text-lg shadow-md">
+                        Done Feeding!
                     </button>
                 `;
-            });
+            } else if (task.type === 'tap_balloon') {
+                board.innerHTML = `<div class="flex justify-around items-center w-full h-full" id="balloon-yard"></div>`;
+                const yard = document.getElementById('balloon-yard');
+                task.options.forEach(opt => {
+                    yard.innerHTML += `
+                        <div onclick="checkSelectedAnswer('${opt}')" class="bg-indigo-400 hover:bg-indigo-500 text-white font-bold text-2xl w-14 h-18 rounded-t-full flex items-center justify-center cursor-pointer shadow-md transform hover:translate-y-[-10px] transition-all relative">
+                            🎈
+                            <span class="absolute text-white font-extrabold text-sm top-3">${opt}</span>
+                        </div>
+                    `;
+                });
+                const grid = document.getElementById('play-options-grid');
+                grid.innerHTML = "";
+            } else if (task.type === 'comparison') {
+                board.innerHTML = `
+                    <div class="flex justify-around w-full">
+                        <div class="flex flex-col items-center">
+                            <span class="text-xs font-bold text-gray-400">A</span>
+                            <span class="text-3xl">${task.emoji.repeat(task.leftVal)}</span>
+                            <span class="text-xs font-bold text-slate-700 mt-2">${task.leftVal} items</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-xs font-bold text-gray-400">B</span>
+                            <span class="text-3xl">${task.emoji.repeat(task.rightVal)}</span>
+                            <span class="text-xs font-bold text-slate-700 mt-2">${task.rightVal} items</span>
+                        </div>
+                    </div>
+                `;
+                const grid = document.getElementById('play-options-grid');
+                grid.innerHTML = "";
+                task.options.forEach(opt => {
+                    grid.innerHTML += `
+                        <button onclick="checkSelectedAnswer('${opt}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 py-3.5 text-lg font-bold rounded-2xl text-amber-800 shadow-md">
+                            ${opt}
+                        </button>
+                    `;
+                });
+            } else if (task.type === 'shape') {
+                let shapeDesign = "";
+                if (task.shape === 'circle') shapeDesign = `<div class="w-20 h-20 bg-emerald-400 border-4 border-emerald-500 rounded-full"></div>`;
+                else if (task.shape === 'square') shapeDesign = `<div class="w-20 h-20 bg-sky-400 border-4 border-sky-500 rounded-xl"></div>`;
+                else if (task.shape === 'triangle') shapeDesign = `<div class="w-0 h-0 border-l-[40px] border-l-transparent border-r-[40px] border-r-transparent border-b-[70px] border-b-rose-400"></div>`;
+                else if (task.shape === 'star') shapeDesign = `<div class="text-7xl">⭐</div>`;
+                else shapeDesign = `<div class="text-7xl">❤️</div>`;
+                
+                board.innerHTML = shapeDesign;
 
-            // Trigger Voice Read-Aloud automatically
-            speak(currentQuestion.question);
+                const grid = document.getElementById('play-options-grid');
+                grid.innerHTML = "";
+                task.options.forEach(opt => {
+                    grid.innerHTML += `
+                        <button onclick="checkSelectedAnswer('${opt}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 py-3.5 text-lg font-bold rounded-2xl text-amber-800 shadow-md">
+                            ${opt}
+                        </button>
+                    `;
+                });
+            } else if (task.type === 'addition') {
+                board.innerHTML = `<div class="text-3xl font-extrabold text-orange-500 tracking-wider">${task.visual}</div>`;
+                const grid = document.getElementById('play-options-grid');
+                grid.innerHTML = "";
+                task.options.forEach(opt => {
+                    grid.innerHTML += `
+                        <button onclick="checkSelectedAnswer('${opt}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 py-3.5 text-lg font-bold rounded-2xl text-amber-800 shadow-md">
+                            ${opt}
+                        </button>
+                    `;
+                });
+            }
+
+            speak(task.speakText);
         }
 
-        // Voice button
-        function repeatQuestionVoice() {
-            const currentQuestion = currentGame.questions[currentGame.currentIndex];
-            speak(currentQuestion.question);
+        function feedMonsterItem(element) {
+            playSoundEffect('tap');
+            const monster = document.getElementById('eating-monster');
+            monster.classList.add('eating');
+            setTimeout(() => monster.classList.remove('eating'), 600);
+
+            // Animate flying or disappear
+            element.classList.add('scale-0');
+            setTimeout(() => element.remove(), 200);
+
+            itemsFedCount += 1;
         }
 
-        // Evaluation core logic
-        function checkAnswer(selected) {
-            const currentQuestion = currentGame.questions[currentGame.currentIndex];
+        function checkSelectedAnswer(selected) {
+            const task = currentGame.questions[currentGame.currentIndex];
             const feedbackEl = document.getElementById('play-feedback-text');
 
-            // Cover both string and numeric types safely
-            if (String(selected) === String(currentQuestion.answer)) {
-                // Correct!
+            let isCorrect = false;
+            if (task.type === "feed_monster") {
+                isCorrect = itemsFedCount === task.count;
+            } else {
+                isCorrect = String(selected).toLowerCase().trim() === String(task.answer).toLowerCase().trim();
+            }
+
+            if (isCorrect) {
                 playSoundEffect('success');
-                triggerConfettiBurst();
+                triggerVisualParticles(window.innerWidth / 2, window.innerHeight / 2);
+                feedbackEl.innerHTML = "✨ Stellar Job! Keep going! ✨";
 
-                // Select randomized positive encouragement
-                const message = ENCOURAGEMENT_WORDS[Math.floor(Math.random() * ENCOURAGEMENT_WORDS.length)];
-                feedbackEl.className = "text-center font-bold text-lg text-emerald-500 animate-bounce";
-                feedbackEl.innerHTML = `🌟 ${message} 🌟`;
-
-                // If they answered right on the first attempt, add to database accuracy points
                 if (currentGame.incorrectAttempts === 0) {
                     currentGame.score += 1;
-                    appProgress.totalCorrectAnswers += 1;
-                } else {
-                    appProgress.totalCorrectAnswers += 1; // still correct ultimately
                 }
 
-                // Advance automatically with delay
                 setTimeout(() => {
                     currentGame.currentIndex += 1;
-                    currentGame.incorrectAttempts = 0; // reset for next question
-
+                    currentGame.incorrectAttempts = 0;
                     if (currentGame.currentIndex < 20) {
                         displayActiveQuestion();
                     } else {
-                        concludeLevelGameplay();
+                        concludeChallengeGame();
                     }
-                }, 1600);
-
+                }, 1400);
             } else {
-                // Incorrect - Safe and non-scary redirection rules
-                playSoundEffect('neutral');
+                playSoundEffect('error');
                 currentGame.incorrectAttempts += 1;
-                appProgress.totalIncorrectAnswers += 1;
-                saveProgress();
-
-                feedbackEl.className = "text-center font-bold text-sm text-amber-600";
-                feedbackEl.innerHTML = "✨ Try again! You can do it! ✨";
-                
-                // Read aloud gentle hints
-                speak("Try again! Let's give it another look!");
+                feedbackEl.innerHTML = "✨ Keep trying! You've got this! ✨";
+                speak("Let's try again! You can do it!");
             }
         }
 
-        function exitGamePlay() {
-            playSoundEffect('tap');
-            switchScreen('levels');
-        }
-
-
-        // --- 5. PROGRESSION & STARS CALCULATION RULES ---
-        function concludeLevelGameplay() {
+        function concludeChallengeGame() {
             const score = currentGame.score;
-            const lvl = currentGame.level;
+            const lvl = currentGame.levelIndex;
+            const modId = currentGame.moduleId;
+            const levelKey = `${modId}_${lvl}`;
 
-            let earnedStars = 0;
-            let success = false;
-            let verdictMessage = "";
+            let starsEarned = 0;
+            let gemsEarned = 0;
+            let verdict = "";
+            let solvedSuccessfully = false;
 
-            if (score >= 20) {
-                earnedStars = 3;
-                success = true;
-                verdictMessage = "PERFECT SCORE! ⭐⭐⭐ You earned all 3 stars and unlocked a cute new sticker in your book!";
-                // Save perfect completion
-                if (!appProgress.perfectScoreLevels.includes(lvl)) {
-                    appProgress.perfectScoreLevels.push(lvl);
-                }
+            if (score === 20) {
+                starsEarned = 3;
+                gemsEarned = 10;
+                solvedSuccessfully = true;
+                verdict = "PERFECT SCORE! ⭐⭐⭐ You earned all 3 stars, a gold trophy, and 10 bonus gems!";
+                appProgress.perfectLevels[levelKey] = true;
             } else if (score >= 18) {
-                earnedStars = 2;
-                success = true;
-                verdictMessage = "FANTASTIC! ⭐⭐ You scored 18 or higher. Next level unlocked!";
+                starsEarned = 2;
+                gemsEarned = 5;
+                solvedSuccessfully = true;
+                verdict = "AMAZING JOB! ⭐⭐ You cleared the challenge level with flying colors!";
             } else if (score >= 16) {
-                earnedStars = 1;
-                success = true;
-                verdictMessage = "GREAT JOB! ⭐ You scored at least 16 out of 20 and unlocked the next level!";
+                starsEarned = 1;
+                gemsEarned = 2;
+                solvedSuccessfully = true;
+                verdict = "GREAT JOB! ⭐ You unlocked the next stage!";
             } else {
-                earnedStars = 0;
-                success = false;
-                verdictMessage = "Almost there! You scored " + score + " out of 20. You need at least 16 correct answers to unlock the next level. Let's try again to get your stars!";
+                starsEarned = 0;
+                gemsEarned = 0;
+                solvedSuccessfully = false;
+                verdict = "Almost there! You got " + score + " out of 20. Let's try again!";
             }
 
-            // Save Completed status
-            if (success) {
-                if (!appProgress.completedLevels.includes(lvl)) {
-                    appProgress.completedLevels.push(lvl);
-                }
-                appProgress.stars += earnedStars;
-                saveProgress();
+            if (solvedSuccessfully) {
+                appProgress.completedLevels[levelKey] = true;
+                appProgress.stars += starsEarned;
+                appProgress.gems += gemsEarned;
+                saveDatabaseProgress();
             }
 
-            // Render details inside Summary screen
             document.getElementById('summary-score').innerText = `${score} / 20`;
-            document.getElementById('summary-verdict').innerText = verdictMessage;
+            document.getElementById('summary-verdict').innerText = verdict;
+            document.getElementById('summary-stars-earned').innerText = starsEarned;
+            document.getElementById('summary-gems-earned').innerText = gemsEarned;
 
-            let starString = "";
-            for (let i = 0; i < earnedStars; i++) starString += "⭐";
-            if (starString === "") starString = "❌";
-            document.getElementById('summary-stars').innerText = starString;
+            let starsVisual = "";
+            for (let i = 0; i < starsEarned; i++) starsVisual += "⭐";
+            if (starsVisual === "") starsVisual = "❌";
+            document.getElementById('summary-stars').innerText = starsVisual;
 
-            // Handle bottom redirection buttons based on unlock success state
             const nextBtn = document.getElementById('summary-next-btn');
-            if (success && lvl < 5) {
-                nextBtn.innerText = "Unlock Level " + (lvl + 1) + "!";
-                nextBtn.onclick = () => { launchLevelGame(lvl + 1); };
+            if (solvedSuccessfully && lvl < 5) {
+                nextBtn.innerText = "Unlock Level " + (lvl + 1);
+                nextBtn.onclick = () => { launchGamePlay(lvl + 1); };
             } else {
-                nextBtn.innerText = "Try Level " + lvl + " Again";
-                nextBtn.onclick = () => { launchLevelGame(lvl); };
+                nextBtn.innerText = "Try Again";
+                nextBtn.onclick = () => { launchGamePlay(lvl); };
             }
 
             switchScreen('summary');
-            speak("Level finished! You scored " + score + " out of 20!");
+            speak(`Challenge completed! You scored ${score} out of 20.`);
         }
 
+        function repeatQuestionVoice() {
+            const task = currentGame.questions[currentGame.currentIndex];
+            speak(task.speakText);
+        }
 
-        // --- 6. TROPHIES AND STICKERS ENGAGEMENT VIEWPORT ---
-        function renderProgressStatus() {
-            updateAppIndicators();
-            const grid = document.getElementById('trophy-grid');
+        function exitGamePlay() {
+            switchScreen('levels');
+        }
+
+        // --- SHOP & ACCESSORY CUSTOMIZATION ---
+        function renderShopInventory() {
+            const grid = document.getElementById('shop-items-grid');
             grid.innerHTML = "";
 
-            for (let lvl = 1; lvl <= 5; lvl++) {
-                const isCompleted = appProgress.completedLevels.includes(lvl);
-                const trophyStyle = isCompleted ? "text-yellow-400 opacity-100" : "text-gray-200 opacity-30";
-                
+            // Render Preview Mascot with Equips
+            document.getElementById('shop-equipped-accessory').innerText = appProgress.selectedAccessory;
+
+            SHOP_ACCESSORIES.forEach(item => {
+                const isOwned = appProgress.purchasedAccessories.includes(item.id);
+                const isEquipped = appProgress.selectedAccessory === item.emoji;
+
+                let actionMarkup = "";
+                if (isEquipped) {
+                    actionMarkup = `<span class="bg-indigo-500 text-white font-bold text-xs px-3 py-1 rounded-full">Equipped</span>`;
+                } else if (isOwned) {
+                    actionMarkup = `<button onclick="equipAccessory('${item.emoji}')" class="bg-sky-400 text-white font-bold text-xs px-3 py-1 rounded-full">Wear</button>`;
+                } else {
+                    actionMarkup = `
+                        <button onclick="buyAccessory('${item.id}', ${item.cost})" class="bg-pink-400 text-white font-bold text-xs px-3 py-1 rounded-full">
+                            💎 ${item.cost}
+                        </button>
+                    `;
+                }
+
                 grid.innerHTML += `
-                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-2 flex flex-col items-center">
-                        <span class="text-2xl ${trophyStyle}"><i class="fa-solid fa-trophy"></i></span>
-                        <span class="text-[9px] font-bold text-gray-500 mt-1">Lvl ${lvl}</span>
+                    <div class="bg-white border-4 border-pink-200 p-4 rounded-3xl text-center space-y-2 flex flex-col items-center">
+                        <span class="text-4xl">${item.emoji}</span>
+                        <h4 class="font-bold text-sm text-slate-700">${item.name}</h4>
+                        ${actionMarkup}
                     </div>
                 `;
+            });
+        }
+
+        function buyAccessory(itemId, cost) {
+            if (appProgress.gems >= cost) {
+                appProgress.gems -= cost;
+                appProgress.purchasedAccessories.push(itemId);
+                saveDatabaseProgress();
+                playSoundEffect('success');
+                renderShopInventory();
+            } else {
+                playSoundEffect('error');
+                alert("Earn more gems by playing levels to purchase this hat!");
             }
         }
 
-        const STICKER_CATALOG = [
-            { emoji: "🦁", title: "Leo", desc: "Unlock Level 1 perfectly" },
-            { emoji: "🐼", title: "Bamboo", desc: "Unlock Level 2 perfectly" },
-            { emoji: "🦊", title: "Felix", desc: "Unlock Level 3 perfectly" },
-            { emoji: "🐻", title: "Barnaby", desc: "Unlock Level 4 perfectly" },
-            { emoji: "🦄", title: "Sparkle", desc: "Unlock Level 5 perfectly" },
-            { emoji: "🐱", title: "Neko", desc: "Earn more than 5 stars total" }
+        function equipAccessory(emoji) {
+            playSoundEffect('tap');
+            appProgress.selectedAccessory = appProgress.selectedAccessory === emoji ? "" : emoji;
+            saveDatabaseProgress();
+            renderShopInventory();
+        }
+
+        // --- STICKER ALBUM RENDER ---
+        const ALBUM_STICKERS = [
+            { emoji: "🦁", name: "Leo the Lion", cost: 1 },
+            { emoji: "🦄", name: "Sparky Unicorn", cost: 3 },
+            { emoji: "🐙", name: "Ollie Octopus", cost: 5 },
+            { emoji: "🦖", name: "Dino Rex", cost: 8 },
+            { emoji: "🐼", name: "Panda Roll", cost: 12 },
+            { emoji: "🛸", name: "Cosmic Alien", cost: 15 }
         ];
 
         function renderStickerBook() {
             const container = document.getElementById('sticker-grid-container');
             container.innerHTML = "";
 
-            STICKER_CATALOG.forEach((item, index) => {
-                const lvlIndex = index + 1;
-                let isUnlocked = false;
-
-                if (lvlIndex <= 5) {
-                    isUnlocked = appProgress.perfectScoreLevels.includes(lvlIndex);
-                } else {
-                    isUnlocked = appProgress.stars >= 5;
-                }
+            ALBUM_STICKERS.forEach(sticker => {
+                const isUnlocked = appProgress.stars >= sticker.cost;
 
                 if (isUnlocked) {
                     container.innerHTML += `
-                        <div class="bg-white border-2 border-indigo-200 p-3 rounded-2xl text-center shadow-sm relative group cursor-pointer hover:rotate-2 transition-transform">
-                            <span class="text-4xl block mb-1">${item.emoji}</span>
-                            <h4 class="font-bold text-xs text-indigo-600">${item.title}</h4>
-                            <span class="absolute top-1 right-2 text-[9px] bg-emerald-100 text-emerald-600 font-bold px-1 rounded">Got it!</span>
+                        <div class="bg-white border-4 border-indigo-200 p-3 rounded-2xl text-center shadow-sm relative hover:rotate-3 transition-transform cursor-pointer">
+                            <span class="text-5xl block mb-1">${sticker.emoji}</span>
+                            <h4 class="font-bold text-xs text-indigo-600">${sticker.name}</h4>
+                            <span class="text-[9px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full">Collected</span>
                         </div>
                     `;
                 } else {
                     container.innerHTML += `
-                        <div class="bg-slate-100 border-2 border-dashed border-slate-200 p-3 rounded-2xl text-center opacity-40">
-                            <span class="text-4xl block mb-1 grayscale">🔒</span>
-                            <h4 class="font-bold text-[10px] text-gray-400">${item.title}</h4>
-                            <p class="text-[8px] text-gray-400 mt-1 leading-tight">${item.desc}</p>
+                        <div class="bg-slate-50 border-4 border-dashed border-slate-200 p-3 rounded-2xl text-center opacity-60 flex flex-col justify-center items-center">
+                            <span class="text-3xl block grayscale">🔒</span>
+                            <h4 class="font-bold text-[10px] text-gray-400 mt-1">${sticker.name}</h4>
+                            <span class="text-[9px] text-indigo-500 font-bold mt-1">Need ⭐ ${sticker.cost}</span>
                         </div>
                     `;
                 }
             });
         }
 
-
-        // --- 7. ADULT MATHEMATICAL GATE & DASHBOARD ---
-        let parentGateMath = { n1: 0, n2: 0, answer: 0 };
-
+        // --- PARENTS LOCK GATE ---
+        let parentCalculation = { n1: 0, n2: 0, res: 0 };
         function setupParentsGate() {
-            // Generate basic arithmetic equations that children do not yet cover (double digit calculations)
-            const n1 = Math.floor(Math.random() * 8) + 12; // 12 to 19
-            const n2 = Math.floor(Math.random() * 7) + 6;  // 6 to 12
-            parentGateMath.n1 = n1;
-            parentGateMath.n2 = n2;
-            parentGateMath.answer = n1 + n2;
+            const n1 = Math.floor(Math.random() * 8) + 12;
+            const n2 = Math.floor(Math.random() * 7) + 6;
+            parentCalculation.n1 = n1;
+            parentCalculation.n2 = n2;
+            parentCalculation.res = n1 + n2;
 
             document.getElementById('gate-n1').innerText = n1;
             document.getElementById('gate-n2').innerText = n2;
@@ -1024,99 +961,111 @@
         }
 
         function verifyParentsGate() {
-            const inputVal = parseInt(document.getElementById('gate-answer').value);
-            if (inputVal === parentGateMath.answer) {
+            const val = parseInt(document.getElementById('gate-answer').value);
+            if (val === parentCalculation.res) {
                 playSoundEffect('success');
                 document.getElementById('parents-gate').classList.add('hidden');
                 document.getElementById('parents-dashboard').classList.remove('hidden');
-                renderParentMetricsDashboard();
+                renderParentMetricsPanel();
             } else {
-                playSoundEffect('neutral');
-                document.getElementById('gate-error-message').innerText = "Math puzzle incorrect! Access denied.";
+                playSoundEffect('error');
+                document.getElementById('gate-error-message').innerText = "Incorrect answer. Try again.";
             }
         }
 
-        function renderParentMetricsDashboard() {
-            // Calculate accuracy metrics
-            const totalAttempts = appProgress.totalCorrectAnswers + appProgress.totalIncorrectAnswers;
-            let accuracyPercent = "0%";
-            if (totalAttempts > 0) {
-                accuracyPercent = Math.round((appProgress.totalCorrectAnswers / totalAttempts) * 100) + "%";
-            }
+        function renderParentMetricsPanel() {
+            const total = appProgress.totalCorrect + appProgress.totalIncorrect;
+            const accuracy = total > 0 ? Math.round((appProgress.totalCorrect / total) * 100) + "%" : "100%";
 
-            document.getElementById('parent-accuracy').innerText = accuracyPercent;
+            document.getElementById('parent-accuracy').innerText = accuracy;
             document.getElementById('parent-streak').innerText = appProgress.streak + " Days";
 
-            let completedLabel = "None yet";
-            if (appProgress.completedLevels.length > 0) {
-                completedLabel = appProgress.completedLevels.map(l => "Lvl " + l).join(", ");
-            }
-            document.getElementById('parent-completed-levels').innerText = completedLabel;
-        }
+            const skillsBox = document.getElementById('parent-skills-mastery');
+            skillsBox.innerHTML = "";
 
-        function toggleAudioMute() {
-            appProgress.audioEnabled = !appProgress.audioEnabled;
-            saveProgress();
-            
-            const btn = document.getElementById('music-btn');
-            if (appProgress.audioEnabled) {
-                btn.innerText = "UNMUTED";
-                btn.className = "bg-emerald-400 text-white font-bold px-3 py-1 rounded-lg text-xs";
-                playSoundEffect('success');
-            } else {
-                btn.innerText = "MUTED";
-                btn.className = "bg-rose-500 text-white font-bold px-3 py-1 rounded-lg text-xs";
-            }
+            MODULE_REGISTRY.forEach(mod => {
+                let levelsSolved = 0;
+                for (let lvl = 1; lvl <= 5; lvl++) {
+                    if (appProgress.completedLevels[`${mod.id}_${lvl}`]) levelsSolved++;
+                }
+
+                const status = levelsSolved === 5 
+                    ? `<span class="text-emerald-500 font-bold">✓ Mastered</span>` 
+                    : `<span class="text-amber-500 font-bold">${levelsSolved}/5 Completed</span>`;
+
+                skillsBox.innerHTML += `
+                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                        <span>${mod.name}</span>
+                        <span>${status}</span>
+                    </div>
+                `;
+            });
         }
 
         function resetAllProgress() {
-            if (confirm("Are you sure you want to delete all child progress and start over?")) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY);
+            if (confirm("Reset everything?")) {
+                localStorage.removeItem(SAVE_KEY);
                 appProgress = {
                     stars: 0,
+                    gems: 15,
                     streak: 1,
                     lastPlayedDate: new Date().toDateString(),
-                    completedLevels: [],
-                    perfectScoreLevels: [],
-                    totalCorrectAnswers: 0,
-                    totalIncorrectAnswers: 0,
-                    currentActiveLevel: 1,
-                    audioEnabled: true
+                    completedLevels: {},
+                    perfectLevels: {},
+                    totalCorrect: 0,
+                    totalIncorrect: 0,
+                    audioEnabled: true,
+                    selectedMascot: "🦊",
+                    selectedAccessory: "",
+                    purchasedAccessories: []
                 };
-                saveProgress();
-                alert("Game data has been reset!");
+                saveDatabaseProgress();
                 switchScreen('home');
             }
         }
 
+        // --- CORE UTILITY persistence ---
+        function loadSavedProgress() {
+            const raw = localStorage.getItem(SAVE_KEY);
+            if (raw) {
+                appProgress = { ...appProgress, ...JSON.parse(raw) };
+            }
+            updateLiveIndicators();
+        }
 
-        // --- 8. VISUAL CONFETTI BURST CELEBRATION EFFECT ---
-        function triggerConfettiBurst() {
-            const container = document.getElementById('confetti-container');
-            const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
-            
-            for (let i = 0; i < 35; i++) {
-                const conf = document.createElement('div');
-                conf.className = 'confetti';
+        function saveDatabaseProgress() {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(appProgress));
+            updateLiveIndicators();
+        }
+
+        function updateLiveIndicators() {
+            document.getElementById('global-star-count').innerText = appProgress.stars;
+            document.getElementById('global-gem-count').innerText = appProgress.gems;
+        }
+
+        // --- PARTICLE EMITTER FOR TOUCH ENGAGEMENT ---
+        function triggerVisualParticles(x, y) {
+            const container = document.getElementById('sparkle-canvas-container');
+            const icons = ['⭐', '✨', '🎈', '🍪', '🌸'];
+            for (let i = 0; i < 20; i++) {
+                const item = document.createElement('span');
+                item.className = 'star-particle text-2xl';
+                item.innerText = icons[Math.floor(Math.random() * icons.length)];
                 
-                // Randomize positions, colors, and delay intervals
-                conf.style.left = Math.random() * 100 + '%';
-                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                conf.style.animationDelay = Math.random() * 0.4 + 's';
-                conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                // Random drift coordinates
+                const driftX = (Math.random() - 0.5) * 150;
+                item.style.left = `${x}px`;
+                item.style.top = `${y}px`;
+                item.style.transform = `translateX(${driftX}px)`;
                 
-                container.appendChild(conf);
-                
-                // Keep the document memory leak clean
-                setTimeout(() => { conf.remove(); }, 3200);
+                container.appendChild(item);
+                setTimeout(() => item.remove(), 800);
             }
         }
 
-
-        // --- 9. LIFECYCLE BOOTLOADER ---
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedProgress();
-            updateAppIndicators();
+            renderHomeMascot();
         });
     </script>
 </body>
