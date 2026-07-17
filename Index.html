@@ -11,7 +11,7 @@ export interface ICurriculumModule {
   moduleId: string;
   yearGroup: number; // e.g., 1 for Year 1
   moduleTitle: string;
-  levels: Array<ICurriculumLevel>;
+  levels: ICurriculumLevel[]; // Changed from Array<ICurriculumLevel>
 }
 
 export interface ICurriculumLevel {
@@ -19,7 +19,7 @@ export interface ICurriculumLevel {
   levelNumber: number;   // 1 to 5
   difficultyRating: number; 
   isUnlocked: boolean;
-  questionPoolGenerator(): Array<MathBloomQuestion>;
+  questionPoolGenerator(): MathBloomQuestion[]; // Changed from Array<MathBloomQuestion>
 }
 
 export interface IGameSessionState {
@@ -27,7 +27,7 @@ export interface IGameSessionState {
   currentLevelId: string;
   score: number;
   totalQuestionsAttempted: number;
-  questionSequence: Array<MathBloomQuestion>;
+  questionSequence: MathBloomQuestion[]; // Changed from Array<MathBloomQuestion>
   currentIndex: number;
 }
 
@@ -44,7 +44,7 @@ export class MathBloomQuestion {
     id: string,
     public promptText: string,
     public correctAnswer: any,
-    public distractors: Array<any>,
+    public distractors: any[], // Changed from Array<any>
     audioUrl: string = '',
     graphics: any = null
   ) {
@@ -57,7 +57,6 @@ export class MathBloomQuestion {
    * Evaluates the child's input against the stored target correct answer.
    */
   public evaluateAnswer(userInput: any): boolean {
-    // Basic type-safe matching; can be extended for coordinate-based drop zones
     if (typeof userInput === 'string' && typeof this.correctAnswer === 'string') {
       return userInput.trim().toLowerCase() === this.correctAnswer.trim().toLowerCase();
     }
@@ -71,9 +70,10 @@ export class MathBloomQuestion {
 
 export class MathBloomEngine {
   private sessionState: IGameSessionState | null = null;
-  private modules: Map<string, ICurriculumModule> = new Map();
+  // Specified explicit string key and ICurriculumModule value types for the Map
+  private modules: Map<string, ICurriculumModule> = new Map<string, ICurriculumModule>();
 
-  constructor(modulesList: Array<ICurriculumModule>) {
+  constructor(modulesList: ICurriculumModule[]) {
     modulesList.forEach(mod => this.modules.set(mod.moduleId, mod));
   }
 
@@ -91,7 +91,6 @@ export class MathBloomEngine {
     // Generate fresh pools
     let rawQuestions = targetLevel.questionPoolGenerator();
     
-    // Ensure strict 15 question rule for Year 1 sessions
     if (rawQuestions.length < 15) {
       console.warn(`Warning: Level ${levelId} has only ${rawQuestions.length} questions. Recommended size is 15.`);
     }
@@ -155,7 +154,6 @@ export class MathBloomEngine {
       if (currentMod) {
         const currentLvlIndex = currentMod.levels.findIndex(l => l.levelId === this.sessionState!.currentLevelId);
         
-        // Check if there is an adjacent level in this module layout to unlock
         if (currentLvlIndex !== -1 && currentLvlIndex + 1 < currentMod.levels.length) {
           const nextLevel = currentMod.levels[currentLvlIndex + 1];
           nextLevel.isUnlocked = true;
@@ -174,7 +172,7 @@ export class MathBloomEngine {
   /**
    * Utility helper implementing strict unbiased random arrays permutation.
    */
-  private fisherYatesShuffle(array: Array<MathBloomQuestion>): Array<MathBloomQuestion> {
+  private fisherYatesShuffle(array: MathBloomQuestion[]): MathBloomQuestion[] {
     const output = [...array];
     for (let i = output.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
