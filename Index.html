@@ -1,30 +1,185 @@
-// Abstract definition allowing infinite curriculum expansion
-interface ICurriculumModule {
+/**
+ * MathBloom Malaysia - Core Syllabus & Engine Architecture
+ * Aligned with KSSR Year 1 Mathematics (Sekolah Kebangsaan)
+ */
+
+// ==========================================
+// 1. Core Interfaces & Type Definitions
+// ==========================================
+
+export interface ICurriculumModule {
   moduleId: string;
-  yearGroup: number; // e.g., 1
+  yearGroup: number; // e.g., 1 for Year 1
   moduleTitle: string;
   levels: Array<ICurriculumLevel>;
 }
 
-interface ICurriculumLevel {
-  levelId: string;
-  difficultyRating: number;
+export interface ICurriculumLevel {
+  levelId: string;       // e.g., "M3-L1" (Module 3, Level 1)
+  levelNumber: number;   // 1 to 5
+  difficultyRating: number; 
   isUnlocked: boolean;
   questionPoolGenerator(): Array<MathBloomQuestion>;
 }
 
-class MathBloomQuestion {
+export interface IGameSessionState {
+  currentModuleId: string;
+  currentLevelId: string;
+  score: number;
+  totalQuestionsAttempted: number;
+  questionSequence: Array<MathBloomQuestion>;
+  currentIndex: number;
+}
+
+// ==========================================
+// 2. Main Question Entity Class
+// ==========================================
+
+export class MathBloomQuestion {
   public id: string;
   public audioNarrationAssetUrl: string;
-  public graphicPayload: any;
-  
+  public graphicPayload: any; // Dynamic storage for vectors/animations
+
   constructor(
+    id: string,
     public promptText: string,
     public correctAnswer: any,
-    public distractors: Array<any>
-  ) {}
+    public distractors: Array<any>,
+    audioUrl: string = '',
+    graphics: any = null
+  ) {
+    this.id = id;
+    this.audioNarrationAssetUrl = audioUrl;
+    this.graphicPayload = graphics;
+  }
 
+  /**
+   * Evaluates the child's input against the stored target correct answer.
+   */
   public evaluateAnswer(userInput: any): boolean {
+    // Basic type-safe matching; can be extended for coordinate-based drop zones
+    if (typeof userInput === 'string' && typeof this.correctAnswer === 'string') {
+      return userInput.trim().toLowerCase() === this.correctAnswer.trim().toLowerCase();
+    }
     return userInput === this.correctAnswer;
+  }
+}
+
+// ==========================================
+// 3. Game Session & Progression Engine
+// ==========================================
+
+export class MathBloomEngine {
+  private sessionState: IGameSessionState | null = null;
+  private modules: Map<string, ICurriculumModule> = new Map();
+
+  constructor(modulesList: Array<ICurriculumModule>) {
+    modulesList.forEach(mod => this.modules.set(mod.moduleId, mod));
+  }
+
+  /**
+   * Instantiates a clean game session.
+   * Pulls 15 questions and randomizes order via Fisher-Yates algorithm.
+   */
+  public startLevelSession(moduleId: string, levelId: string): IGameSessionState {
+    const targetModule = this.modules.get(moduleId);
+    if (!targetModule) throw new Error(`Module ${moduleId} not found.`);
+
+    const targetLevel = targetModule.levels.find(lvl => lvl.levelId === levelId);
+    if (!targetLevel) throw new Error(`Level ${levelId} not found in module ${moduleId}.`);
+
+    // Generate fresh pools
+    let rawQuestions = targetLevel.questionPoolGenerator();
+    
+    // Ensure strict 15 question rule for Year 1 sessions
+    if (rawQuestions.length < 15) {
+      console.warn(`Warning: Level ${levelId} has only ${rawQuestions.length} questions. Recommended size is 15.`);
+    }
+    
+    // Shuffle the question pool cleanly so no two game sessions look identical
+    let shuffledSequence = this.fisherYatesShuffle(rawQuestions).slice(0, 15);
+
+    this.sessionState = {
+      currentModuleId: moduleId,
+      currentLevelId: levelId,
+      score: 0,
+      totalQuestionsAttempted: 0,
+      questionSequence: shuffledSequence,
+      currentIndex: 0
+    };
+
+    return this.sessionState;
+  }
+
+  /**
+   * Processes the current active answer, mutates the running score state,
+   * and increments session markers.
+   */
+  public submitUserAnswer(userInput: any): { isCorrect: boolean; nextQuestion: MathBloomQuestion | null; sessionFinished: boolean } {
+    if (!this.sessionState) throw new Error("No active learning session initialized.");
+
+    const currentQuestion = this.sessionState.questionSequence[this.sessionState.currentIndex];
+    const isCorrect = currentQuestion.evaluateAnswer(userInput);
+
+    if (isCorrect) {
+      this.sessionState.score += 1;
+    }
+    this.sessionState.totalQuestionsAttempted += 1;
+    this.sessionState.currentIndex += 1;
+
+    const hasNext = this.sessionState.currentIndex < this.sessionState.questionSequence.length;
+    
+    return {
+      isCorrect,
+      nextQuestion: hasNext ? this.sessionState.questionSequence[this.sessionState.currentIndex] : null,
+      sessionFinished: !hasNext
+    };
+  }
+
+  /**
+   * Applies the KSSR 80% passing standard gate (12 out of 15 parameters).
+   * Unlocks the subsequent level structural layout automatically on success.
+   */
+  public evaluatePassGateAndUnlockNext(): { passed: boolean; scoreEarned: number; nextLevelIdUnlocked: string | null } {
+    if (!this.sessionState) throw new Error("No session active to evaluate.");
+
+    const finalScore = this.sessionState.score;
+    const itemsCount = this.sessionState.questionSequence.length;
+    const passingThreshold = 0.80; // 80% Mastery rule
+    
+    const passed = (finalScore / itemsCount) >= passingThreshold;
+    let nextLevelIdUnlocked: string | null = null;
+
+    if (passed) {
+      const currentMod = this.modules.get(this.sessionState.currentModuleId);
+      if (currentMod) {
+        const currentLvlIndex = currentMod.levels.findIndex(l => l.levelId === this.sessionState!.currentLevelId);
+        
+        // Check if there is an adjacent level in this module layout to unlock
+        if (currentLvlIndex !== -1 && currentLvlIndex + 1 < currentMod.levels.length) {
+          const nextLevel = currentMod.levels[currentLvlIndex + 1];
+          nextLevel.isUnlocked = true;
+          nextLevelIdUnlocked = nextLevel.levelId;
+        }
+      }
+    }
+
+    return {
+      passed,
+      scoreEarned: finalScore,
+      nextLevelIdUnlocked
+    };
+  }
+
+  /**
+   * Utility helper implementing strict unbiased random arrays permutation.
+   */
+  private fisherYatesShuffle(array: Array<MathBloomQuestion>): Array<MathBloomQuestion> {
+    const output = [...array];
+    for (let i = output.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [output[i], output[j]] = [output[j], output[i]];
+    }
+    return output;
   }
 }
