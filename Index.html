@@ -3,1069 +3,1076 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBloom Kids: Super Arcade Adventure</title>
-    <!-- Tailwind CSS for modern, bouncy styling -->
+    <title>MathBloom Kids: Early Math Adventure</title>
+    <!-- Tailwind CSS for modern pastel layout -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Playful Fonts -->
+    <!-- Playful typography and icons -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Lilita+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         body {
             font-family: 'Fredoka', sans-serif;
-            background: radial-gradient(circle, #fef08a 0%, #fde047 100%);
+            background: linear-gradient(135deg, #fbcfe8 0%, #v3e8ff 50%, #ccfbf1 100%);
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
             overflow: hidden;
         }
-        .kids-title {
+        .kids-heading {
             font-family: 'Lilita One', cursive;
-            text-shadow: 3px 3px 0px #b45309;
+            text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
         }
-        /* Particle Burst Keyframes */
-        @keyframes particleUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-120px) scale(0); opacity: 0; }
-        }
-        .star-particle {
-            position: absolute;
-            animation: particleUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            pointer-events: none;
-        }
-        /* Bouncy Wobble for Monsters and Buttons */
-        @keyframes wobble {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.1) rotate(-3deg); }
-            75% { transform: scale(1.05) rotate(3deg); }
-        }
-        .monster-bounce {
-            animation: wobble 3s infinite ease-in-out;
-        }
-        /* Chomping Monster Animation */
-        @keyframes chomp {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.5); }
-        }
-        .eating {
-            animation: chomp 0.2s 3 ease-in-out;
-        }
-        /* Hide scrollbars */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Smooth scale-in animations */
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+        /* Floating Cloud Micro-animations */
+        @keyframes floatCloud {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            50% { transform: translateY(-10px) translateX(5px); }
+        }
+        .animate-cloud { animation: floatCloud 6s infinite ease-in-out; }
+
+        /* Particle Burst Keyframes */
+        @keyframes particleBurst {
+            0% { transform: translate(0,0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; }
+        }
+        .celebration-star {
+            position: absolute;
+            pointer-events: none;
+            animation: particleBurst 0.9s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-2 sm:p-4 relative">
+<body class="min-h-screen flex items-center justify-center p-0 sm:p-4 relative">
 
-    <!-- Confetti Canvas overlay -->
-    <div id="sparkle-canvas-container" class="absolute inset-0 pointer-events-none z-50"></div>
+    <!-- Confetti Particle Layer Container -->
+    <div id="particle-container" class="absolute inset-0 pointer-events-none z-50 overflow-hidden"></div>
 
-    <!-- Main Game Console Frame -->
-    <div class="w-full max-w-md bg-amber-100 rounded-[40px] shadow-2xl border-[10px] border-amber-400 overflow-hidden flex flex-col relative" style="height: 840px;">
+    <!-- Main Mobile Application Viewport Shell -->
+    <div class="w-full max-w-md bg-white/90 backdrop-blur-md sm:rounded-[40px] shadow-2xl border-0 sm:border-[8px] border-pink-200 overflow-hidden flex flex-col relative h-screen sm:h-[850px]">
         
-        <!-- Header Console Bar -->
-        <div class="bg-gradient-to-r from-amber-400 to-orange-400 text-white px-5 py-4 flex justify-between items-center shrink-0 border-b-4 border-amber-500">
-            <div class="flex items-center space-x-2">
-                <span class="text-3xl animate-bounce">👾</span>
-                <span class="kids-title text-2xl tracking-wide text-white">MathBloom Arcade</span>
+        <!-- Top Status Bar & Economy Monitors -->
+        <div class="bg-gradient-to-r from-pink-300 via-purple-300 to-sky-300 px-4 py-3 flex justify-between items-center shrink-0 border-b-4 border-white/40 shadow-sm z-30">
+            <div class="flex items-center space-x-2 cursor-pointer" onclick="switchScreen('home')">
+                <span class="text-2xl animate-bounce">🌈</span>
+                <span class="kids-heading text-xl tracking-wide text-white">MathBloom</span>
             </div>
-            <!-- Star Currency & Gem Shop counters -->
-            <div class="flex items-center space-x-1.5">
-                <div class="bg-amber-600/30 px-3 py-1 rounded-full flex items-center space-x-1 border border-white/40">
-                    <span class="text-yellow-300 text-base">⭐</span>
-                    <span id="global-star-count" class="font-bold text-white text-sm">0</span>
+            <!-- Wallet Indicators -->
+            <div class="flex items-center space-x-1">
+                <div class="bg-white/40 px-2.5 py-0.5 rounded-full flex items-center space-x-1 text-xs border border-white/60">
+                    <span>⭐</span><span id="stat-stars" class="font-bold text-purple-700">0</span>
                 </div>
-                <div class="bg-amber-600/30 px-3 py-1 rounded-full flex items-center space-x-1 border border-white/40 cursor-pointer hover:scale-105 transition-transform" onclick="switchScreen('shop')">
-                    <span class="text-pink-300 text-base">💎</span>
-                    <span id="global-gem-count" class="font-bold text-white text-sm">15</span>
+                <div class="bg-white/40 px-2.5 py-0.5 rounded-full flex items-center space-x-1 text-xs border border-white/60">
+                    <span>🪙</span><span id="stat-coins" class="font-bold text-amber-700">0</span>
+                </div>
+                <div class="bg-white/40 px-2.5 py-0.5 rounded-full flex items-center space-x-1 text-xs border border-white/60">
+                    <span>💎</span><span id="stat-gems" class="font-bold text-pink-700">0</span>
                 </div>
             </div>
         </div>
 
-        <!-- Master Visual Screen Panel -->
-        <div id="screen-container" class="flex-1 overflow-y-auto p-5 bg-gradient-to-b from-sky-100 via-sky-50 to-emerald-50 flex flex-col justify-between relative">
+        <!-- Master Core Render Container -->
+        <div id="view-port" class="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-sky-50 via-purple-50 to-pink-50 flex flex-col justify-between relative no-scrollbar">
             
-            <!-- ================= ARCADE HOME SCREEN ================= -->
-            <div id="screen-home" class="space-y-6 flex-1 flex flex-col justify-between py-4">
-                <div class="text-center space-y-3">
-                    <!-- Interactive Mascot -->
-                    <div id="mascot-home" class="text-8xl inline-block cursor-pointer monster-bounce" onclick="petMascot()">
-                        🦊
+            <!-- ================= SCREEN: HOME MAIN ADVENTURE ================= -->
+            <div id="screen-home" class="space-y-6 flex-1 flex flex-col justify-between py-2">
+                <div class="text-center space-y-2">
+                    <!-- Interactive Mascot Avatar Box -->
+                    <div id="home-mascot-pod" class="text-8xl inline-block cursor-pointer relative py-3 transform hover:scale-110 transition-transform active:rotate-6" onclick="tapMascotExpression()">
+                        🐰
+                        <span id="home-equipped-item" class="absolute top-0 right-0 text-4xl"></span>
                     </div>
-                    <div class="bg-white/80 backdrop-blur-sm rounded-2xl py-2 px-4 inline-block border-2 border-orange-300">
-                        <p id="mascot-bubble" class="text-orange-600 font-bold text-sm">Tap me to play, Explorer!</p>
-                    </div>
-                    <h1 class="kids-title text-5xl text-orange-500 tracking-wide">MathBloom!</h1>
-                </div>
-
-                <!-- Beautiful Level Launchpad Grid -->
-                <div class="grid grid-cols-2 gap-4">
-                    <button onclick="switchScreen('modules')" class="bg-emerald-400 hover:bg-emerald-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-emerald-600">
-                        <span class="text-5xl mb-2">🌴</span>
-                        <span class="font-bold text-lg">Adventure Map</span>
-                    </button>
-                    <button onclick="switchScreen('shop')" class="bg-pink-400 hover:bg-pink-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-pink-600">
-                        <span class="text-5xl mb-2">👑</span>
-                        <span class="font-bold text-lg">Mascot Shop</span>
-                    </button>
-                    <button onclick="switchScreen('stickers')" class="bg-indigo-400 hover:bg-indigo-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-indigo-600">
-                        <span class="text-5xl mb-2">🏆</span>
-                        <span class="font-bold text-lg">Sticker Book</span>
-                    </button>
-                    <button onclick="switchScreen('parents')" class="bg-sky-400 hover:bg-sky-500 text-white rounded-3xl p-5 shadow-lg transform active:scale-95 transition-all flex flex-col items-center border-b-8 border-sky-600">
-                        <span class="text-5xl mb-2">⚙️</span>
-                        <span class="font-bold text-lg">Parents Zone</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ================= THE ADVENTURE MAP (MODULES) ================= -->
-            <div id="screen-modules" class="hidden space-y-4 flex-1">
-                <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('home')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
-                        <i class="fa-solid fa-house"></i> Home
-                    </button>
-                    <h2 class="kids-title text-xl text-emerald-500">Choose World</h2>
-                </div>
-
-                <div class="space-y-3 overflow-y-auto max-h-[560px] pr-1 no-scrollbar animate-fade-in" id="modules-list-container">
-                    <!-- Dynamic rendering of Worlds -->
-                </div>
-            </div>
-
-            <!-- ================= LEVEL MAP SELECTOR ================= -->
-            <div id="screen-levels" class="hidden space-y-4 flex-1">
-                <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('modules')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-left"></i> Worlds
-                    </button>
-                    <h2 id="level-screen-title" class="kids-title text-lg text-amber-500">Pick Level</h2>
-                </div>
-
-                <div class="space-y-3" id="level-list-container">
-                    <!-- Levels list -->
-                </div>
-            </div>
-
-            <!-- ================= LIVE ARCADE PLAYBOARD ================= -->
-            <div id="screen-play" class="hidden flex-1 flex flex-col justify-between">
-                <div class="flex items-center justify-between pb-2 border-b-2 border-gray-100">
-                    <button onclick="exitGamePlay()" class="text-xs font-bold text-red-500 flex items-center gap-1">
-                        <i class="fa-solid fa-circle-xmark text-lg"></i> Leave
-                    </button>
-                    <span id="play-level-indicator" class="font-bold text-slate-700 text-sm">Level 1</span>
-                    <span id="play-progress-indicator" class="font-bold text-emerald-500 text-sm">Question 1/20</span>
-                </div>
-
-                <div class="flex-1 flex flex-col justify-center items-center py-2 space-y-3">
-                    <!-- Narrator Audio Button -->
-                    <button onclick="repeatQuestionVoice()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 px-4 py-2 rounded-full flex items-center gap-2 text-xs font-bold shadow-sm transform active:scale-95 transition-all">
-                        <span class="animate-bounce text-base">🔊</span> Tap to Hear Narration
-                    </button>
-
-                    <h3 id="play-question-text" class="text-center font-bold text-slate-800 text-lg px-2">How many objects?</h3>
-
-                    <!-- Interactive Visual Board -->
-                    <div id="play-visual-board" class="w-full bg-white border-4 border-amber-400 rounded-3xl min-h-[220px] flex flex-col items-center justify-center p-4 shadow-inner relative overflow-hidden">
-                        <!-- Dynamic visual interactive gameplay rendering -->
+                    <div class="bg-white/90 shadow-sm rounded-2xl py-2 px-4 inline-block border-2 border-pink-200 max-w-xs animate-cloud">
+                        <p id="mascot-speech-bubble" class="text-pink-600 font-bold text-sm">Welcome to MathBloom Land! Let's explore!</p>
                     </div>
                 </div>
 
-                <!-- Choice Board & Animations -->
+                <!-- Launch Buttons Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="switchScreen('modules')" class="bg-gradient-to-br from-emerald-300 to-teal-400 text-white rounded-3xl p-4 shadow-md active:scale-95 transition-all border-b-4 border-teal-600 flex flex-col items-center">
+                        <span class="text-4xl mb-1">🏝️</span>
+                        <span class="font-bold text-sm tracking-wide">Adventure Map</span>
+                    </button>
+                    <button onclick="switchScreen('shop')" class="bg-gradient-to-br from-pink-300 to-rose-400 text-white rounded-3xl p-4 shadow-md active:scale-95 transition-all border-b-4 border-rose-600 flex flex-col items-center">
+                        <span class="text-4xl mb-1">👑</span>
+                        <span class="font-bold text-sm tracking-wide">Dress-Up Shop</span>
+                    </button>
+                    <button onclick="switchScreen('rewards')" class="bg-gradient-to-br from-purple-300 to-indigo-400 text-white rounded-3xl p-4 shadow-md active:scale-95 transition-all border-b-4 border-indigo-600 flex flex-col items-center">
+                        <span class="text-4xl mb-1">🏆</span>
+                        <span class="font-bold text-sm tracking-wide">My Prizes</span>
+                    </button>
+                    <button onclick="openParentsSecurityGate()" class="bg-gradient-to-br from-sky-300 to-blue-400 text-white rounded-3xl p-4 shadow-md active:scale-95 transition-all border-b-4 border-blue-600 flex flex-col items-center">
+                        <span class="text-4xl mb-1">🔒</span>
+                        <span class="font-bold text-sm tracking-wide">Parents Zone</span>
+                    </button>
+                </div>
+
+                <!-- Daily Streak Counter Panel -->
+                <div class="bg-white/70 border border-white p-3 rounded-2xl text-center flex justify-between items-center shadow-xs">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">🔥</span>
+                        <span class="text-xs font-bold text-slate-600">Learning Streak: <b id="streak-days" class="text-orange-500">1 Day</b></span>
+                    </div>
+                    <span class="text-[10px] uppercase font-bold tracking-wider bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Keep it up!</span>
+                </div>
+            </div>
+
+            <!-- ================= SCREEN: ALL 30 LEARNING MODULES ================= -->
+            <div id="screen-modules" class="hidden space-y-3 flex-1 flex flex-col">
+                <div class="flex justify-between items-center pb-1">
+                    <h3 class="kids-heading text-lg text-purple-600">Choose an Adventure</h3>
+                    <button onclick="switchScreen('home')" class="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200">🏠 Home</button>
+                </div>
+                <div class="flex-1 overflow-y-auto pr-1 space-y-2.5 no-scrollbar max-h-[600px]" id="modules-list-wrapper">
+                    <!-- Dynamic rendering target for all 30 educational tracks -->
+                </div>
+            </div>
+
+            <!-- ================= SCREEN: LEVEL MAP TREE (1-5) ================= -->
+            <div id="screen-levels" class="hidden space-y-4 flex-1 flex flex-col">
+                <div class="flex justify-between items-center">
+                    <button onclick="switchScreen('modules')" class="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200">🔙 Back</button>
+                    <h3 id="level-module-title" class="kids-heading text-base text-teal-600">Module Levels</h3>
+                    <div class="w-8"></div>
+                </div>
+                <div class="flex-1 flex flex-col justify-center space-y-3" id="levels-buttons-wrapper">
+                    <!-- Dynamic level mission nodes render here -->
+                </div>
+            </div>
+
+            <!-- ================= SCREEN: CORE INTERACTIVE PLAY ENGINE ================= -->
+            <div id="screen-play" class="hidden flex-1 flex flex-col justify-between animate-pop">
+                <!-- Session Indicators Header -->
+                <div class="flex items-center justify-between border-b border-purple-100 pb-2">
+                    <button onclick="confirmExitActiveSession()" class="text-xs font-bold text-rose-500 flex items-center gap-1 bg-rose-50 px-2.5 py-1 rounded-full">❌ Exit</button>
+                    <span id="play-title-node" class="text-xs font-bold text-slate-500 uppercase tracking-wide">Counting 1-20</span>
+                    <span id="play-counter-node" class="text-xs font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full">1 / 15</span>
+                </div>
+
+                <!-- Central Visual Playboard Area -->
+                <div class="flex-1 flex flex-col items-center justify-center py-4 space-y-4">
+                    <!-- Voice Narration Replay Assist Button -->
+                    <button onclick="triggerVoiceReplay()" class="bg-purple-100 hover:bg-purple-200 text-purple-700 px-4 py-1.5 rounded-full flex items-center gap-1.5 text-xs font-bold transition-transform active:scale-95 shadow-xs">
+                        <span>🔊</span> Tap to Hear Question
+                    </button>
+
+                    <!-- Core Question Text Prompt -->
+                    <h2 id="play-question-prompt" class="text-center font-bold text-slate-700 text-lg px-2 leading-tight">How many cute kittens can you find?</h2>
+
+                    <!-- Game Board Component Target Area -->
+                    <div id="play-gameboard-surface" class="w-full bg-white/80 border-4 border-purple-200 rounded-[32px] min-h-[260px] flex flex-col items-center justify-center p-4 shadow-inner relative overflow-hidden">
+                        <!-- Component-specific structural nodes injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Input Choices Layout Wrapper -->
                 <div class="space-y-3">
-                    <div id="play-options-grid" class="grid grid-cols-2 gap-3">
-                        <!-- Choices dynamically injected -->
+                    <div id="play-choices-grid" class="grid grid-cols-2 gap-3">
+                        <!-- Action keys injected dynamically -->
                     </div>
-                    <div id="play-feedback-text" class="text-center font-bold text-base h-6 transition-all"></div>
+                    <div id="play-live-feedback" class="text-center font-bold text-sm h-5 text-purple-500"></div>
                 </div>
             </div>
 
-            <!-- ================= INTERACTIVE MASCOT COSTUME SHOP ================= -->
-            <div id="screen-shop" class="hidden space-y-4 flex-1">
-                <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('home')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
-                        <i class="fa-solid fa-house"></i> Home
-                    </button>
-                    <h2 class="kids-title text-xl text-pink-500">Mascot Dress-Up</h2>
-                </div>
-
-                <div class="bg-white p-4 rounded-3xl border-4 border-pink-300 flex items-center justify-around shadow-sm">
-                    <div id="shop-mascot-preview" class="text-7xl relative monster-bounce">
-                        🦊
-                        <span id="shop-equipped-accessory" class="absolute -top-3 -right-3 text-4xl"></span>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-bold text-slate-700 text-sm">Choose Your Outfit!</p>
-                        <p class="text-xs text-slate-400">Unlock accessories using gems!</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 overflow-y-auto max-h-[340px] pr-1" id="shop-items-grid">
-                    <!-- Accessories for the Mascot -->
-                </div>
-            </div>
-
-            <!-- ================= STICKER ALBUM ================= -->
-            <div id="screen-stickers" class="hidden space-y-4 flex-1">
-                <div class="flex items-center justify-between">
-                    <button onclick="switchScreen('home')" class="text-sm font-bold text-orange-500 flex items-center gap-1">
-                        <i class="fa-solid fa-house"></i> Home
-                    </button>
-                    <h2 class="kids-title text-xl text-indigo-500">Sticker Book</h2>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3 overflow-y-auto max-h-[480px] pr-1" id="sticker-grid-container">
-                    <!-- Beautiful collectible stickers -->
-                </div>
-            </div>
-
-            <!-- ================= LEVEL COMPLETED VIEW ================= -->
-            <div id="screen-summary" class="hidden flex-1 flex flex-col justify-center items-center text-center space-y-5">
-                <div id="summary-emojis" class="text-8xl animate-bounce">🦖🏆🦖</div>
-                <h2 id="summary-headline" class="kids-title text-3xl text-orange-500">Sensational!</h2>
+            <!-- ================= SCREEN: LEVEL COMPLETED DASHBOARD ================= -->
+            <div id="screen-summary" class="hidden flex-1 flex flex-col justify-center items-center text-center space-y-6 animate-pop">
+                <div id="summary-badge-showcase" class="text-8xl animate-bounce">🦄✨</div>
+                <h2 id="summary-verdict-title" class="kids-heading text-3xl text-pink-500">Magical Journey!</h2>
                 
-                <div class="bg-white p-5 rounded-3xl border-4 border-amber-400 w-full max-w-xs space-y-3 shadow-md">
-                    <p class="text-gray-500 text-xs font-semibold">YOUR SCORE</p>
-                    <p id="summary-score" class="font-bold text-4xl text-gray-800">20 / 20</p>
+                <div class="bg-white/90 p-5 rounded-[32px] border-4 border-pink-200 w-full max-w-xs space-y-3 shadow-md">
+                    <p class="text-slate-400 text-xs font-bold tracking-wider">LEVEL REPORT</p>
+                    <p id="summary-score-ratio" class="font-bold text-4xl text-slate-800">15 / 15</p>
+                    <div id="summary-stars-row" class="text-yellow-400 text-3xl">⭐⭐⭐</div>
                     
-                    <div id="summary-stars" class="text-yellow-400 text-4xl">⭐⭐⭐</div>
-                    
-                    <div class="flex justify-center gap-4 text-sm font-bold text-slate-700 py-1 bg-amber-50 rounded-xl">
-                        <span>💎 +<span id="summary-gems-earned">0</span></span>
-                        <span>⭐ +<span id="summary-stars-earned">0</span></span>
+                    <div class="grid grid-cols-3 gap-1 text-xs font-bold text-slate-700 pt-2 border-t border-slate-100">
+                        <div class="bg-yellow-50 p-1.5 rounded-xl">⭐ +<span id="sum-plus-stars">0</span></div>
+                        <div class="bg-amber-50 p-1.5 rounded-xl">🪙 +<span id="sum-plus-coins">0</span></div>
+                        <div class="bg-pink-50 p-1.5 rounded-xl">💎 +<span id="sum-plus-gems">0</span></div>
                     </div>
-
-                    <p id="summary-verdict" class="text-xs text-gray-500 font-bold px-2 leading-tight"></p>
+                    <p id="summary-motivational-text" class="text-xs font-medium text-slate-500 px-1 leading-snug"></p>
                 </div>
 
-                <div class="flex flex-col gap-2 w-full max-w-xs">
-                    <button id="summary-next-btn" class="bg-emerald-400 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl border-b-8 border-emerald-600 text-lg">
-                        Next Level!
+                <div class="flex flex-col gap-2.5 w-full max-w-xs">
+                    <button id="summary-action-primary" class="bg-gradient-to-r from-emerald-400 to-teal-400 text-white font-bold py-3.5 rounded-2xl border-b-4 border-teal-600 shadow-md transform active:scale-95 transition-all text-base tracking-wide">
+                        Continue Adventure
                     </button>
-                    <button onclick="switchScreen('home')" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-3 rounded-2xl border-b-4 border-gray-600 text-sm">
-                        Go Home
+                    <button onclick="switchScreen('home')" class="bg-slate-200 text-slate-600 font-bold py-2.5 rounded-2xl text-xs">
+                        Return to Home Map
                     </button>
                 </div>
             </div>
 
-            <!-- ================= PARENTS LOCK & DASHBOARD ================= -->
-            <div id="screen-parents" class="hidden space-y-4 flex-1 flex flex-col justify-center">
-                <div id="parents-gate" class="bg-white p-6 rounded-3xl border-4 border-sky-300 space-y-4 shadow-md">
-                    <div class="text-center">
-                        <span class="text-5xl">🔒</span>
-                        <h2 class="kids-title text-xl text-sky-600 mt-2">Parents Security Lock</h2>
-                        <p class="text-xs text-gray-500 mt-1">Please solve to unlock dashboard:</p>
-                    </div>
-                    <div class="bg-sky-50 p-4 rounded-2xl text-center font-bold text-2xl text-sky-800">
-                        <span id="gate-n1">0</span> + <span id="gate-n2">0</span> = ?
-                    </div>
-                    <input type="number" id="gate-answer" placeholder="Type answer" class="w-full text-center border-4 border-sky-300 p-3 rounded-2xl font-bold text-xl">
-                    <button onclick="verifyParentsGate()" class="w-full bg-sky-400 hover:bg-sky-500 text-white font-bold py-3.5 rounded-2xl border-b-4 border-sky-600 text-lg">Unlock Analytics</button>
-                    <p id="gate-error-message" class="text-xs text-red-500 text-center font-bold h-4"></p>
+            <!-- ================= SCREEN: AVATAR ACCESSORIES SHOP ================= -->
+            <div id="screen-shop" class="hidden space-y-4 flex-1 flex flex-col">
+                <div class="flex justify-between items-center">
+                    <h3 class="kids-heading text-lg text-pink-500">Mascot Dress-Up</h3>
+                    <button onclick="switchScreen('home')" class="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200">🏠 Home</button>
                 </div>
 
-                <div id="parents-dashboard" class="hidden space-y-4 overflow-y-auto max-h-[580px] p-1 no-scrollbar">
-                    <div class="flex justify-between items-center">
-                        <h2 class="kids-title text-xl text-slate-700">Analytics Board</h2>
-                        <button onclick="resetAllProgress()" class="bg-rose-500 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg">Reset Data</button>
+                <!-- Wardrobe Sandbox Sandbox Component -->
+                <div class="bg-white/90 p-4 rounded-3xl border-4 border-pink-200 flex items-center justify-around shadow-xs shrink-0">
+                    <div id="shop-preview-pod" class="text-7xl relative transform transition-transform">
+                        🐰
+                        <span id="shop-equipped-item" class="absolute top-0 right-0 text-3xl"></span>
+                    </div>
+                    <div class="text-left space-y-0.5">
+                        <p class="font-bold text-slate-700 text-sm">Style Your Mascot</p>
+                        <p class="text-xs text-slate-400 leading-tight">Spend your hard earned gems here!</p>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-1 grid grid-cols-2 gap-3 max-h-[420px] no-scrollbar" id="shop-items-grid">
+                    <!-- Accessories catalog injected here -->
+                </div>
+            </div>
+
+            <!-- ================= SCREEN: REWARDS ALBUM ================= -->
+            <div id="screen-rewards" class="hidden space-y-4 flex-1 flex flex-col">
+                <div class="flex justify-between items-center">
+                    <h3 class="kids-heading text-lg text-purple-500">My Stickers & Prizes</h3>
+                    <button onclick="switchScreen('home')" class="text-xs font-bold bg-white px-3 py-1 rounded-full border border-slate-200">🏠 Home</button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-1 grid grid-cols-3 gap-2.5 max-h-[560px] no-scrollbar" id="rewards-grid-target">
+                    <!-- Unlocked sticker trophies render target -->
+                </div>
+            </div>
+
+            <!-- ================= SCREEN: SECURE PARENTS GATEWAY & REPORTS ================= -->
+            <div id="screen-parents" class="hidden space-y-4 flex-1 flex flex-col justify-center">
+                
+                <!-- Security Question Overlay Guard -->
+                <div id="parents-lock-gate" class="bg-white p-5 rounded-3xl border-4 border-sky-200 space-y-4 shadow-md">
+                    <div class="text-center">
+                        <span class="text-4xl">🔒</span>
+                        <h3 class="kids-heading text-base text-sky-600 mt-1">Parents Security Verification</h3>
+                        <p class="text-xs text-slate-400">Please solve this calculation to access the dashboard data:</p>
+                    </div>
+                    <div class="bg-sky-50 p-3 rounded-xl text-center font-bold text-xl text-sky-800 tracking-wider">
+                        <span id="gate-factor-a">0</span> + <span id="gate-factor-b">0</span> = ?
+                    </div>
+                    <input type="number" id="gate-input-field" placeholder="Answer here" class="w-full text-center border-2 border-sky-200 p-2.5 rounded-xl font-bold text-lg focus:outline-none focus:border-sky-400">
+                    <button onclick="submitParentsGateVerification()" class="w-full bg-sky-400 text-white font-bold py-3 rounded-xl border-b-4 border-blue-600 tracking-wide text-sm">Verify & Unlock</button>
+                    <p id="gate-error-log" class="text-xs text-red-500 text-center font-bold h-3"></p>
+                </div>
+
+                <!-- Analytics Metrics Board Container Panel -->
+                <div id="parents-analytics-dashboard" class="hidden space-y-3 flex-1 flex flex-col text-left">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <h3 class="font-bold text-slate-700 text-base">Progress Dashboard Reports</h3>
+                        <button onclick="hardResetAppProgress()" class="bg-rose-500 text-white font-bold text-[10px] px-2.5 py-1 rounded-md shadow-xs">Reset All Data</button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
-                            <span class="text-[10px] text-slate-400 font-bold block">Accuracy</span>
-                            <span id="parent-accuracy" class="text-lg font-bold text-slate-800">0%</span>
+                    <div class="grid grid-cols-2 gap-2 text-center shrink-0">
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Overall Accuracy</span>
+                            <span id="p-metric-accuracy" class="text-xl font-bold text-slate-800">100%</span>
                         </div>
-                        <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
-                            <span class="text-[10px] text-slate-400 font-bold block">Streak</span>
-                            <span id="parent-streak" class="text-lg font-bold text-slate-800">0 Days</span>
+                        <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-xs">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Total Exercises</span>
+                            <span id="p-metric-count" class="text-xl font-bold text-slate-800">0 Tasks</span>
                         </div>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200">
-                        <h4 class="font-bold text-xs text-slate-500 mb-2 uppercase">Completed Subject Milestones</h4>
-                        <div id="parent-skills-mastery" class="space-y-1 text-xs text-slate-600"></div>
+                    <div class="bg-white p-3 rounded-xl border border-slate-200 flex-1 flex flex-col min-h-[300px]">
+                        <h4 class="font-bold text-xs text-slate-500 mb-2 uppercase tracking-wide">Subject Milestone Progression</h4>
+                        <div id="p-metric-milestones-box" class="flex-1 overflow-y-auto space-y-1 text-xs text-slate-600 pr-1 no-scrollbar max-h-[320px]">
+                            <!-- Rows rendered dynamically -->
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Global Navigation Dock (Footer) -->
-        <div class="bg-white border-t border-gray-100 py-3 px-6 flex justify-around items-center shrink-0">
-            <button onclick="switchScreen('home')" class="flex flex-col items-center space-y-1 text-amber-500">
-                <span class="text-xl"><i class="fa-solid fa-gamepad"></i></span>
-                <span class="text-[10px] font-bold">Arcade</span>
+        <!-- Global Universal Navigation Dock System Footer -->
+        <div class="bg-white/95 border-t border-purple-100 py-3 px-4 flex justify-around items-center shrink-0 z-20 shadow-lg">
+            <button onclick="switchScreen('home')" class="flex flex-col items-center text-pink-400 font-bold active:scale-90 transition-transform">
+                <i class="fa-solid fa-compass text-xl"></i><span class="text-[10px] mt-0.5">Explore</span>
             </button>
-            <button onclick="switchScreen('modules')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-emerald-500">
-                <span class="text-xl"><i class="fa-solid fa-map"></i></span>
-                <span class="text-[10px] font-bold">Map</span>
+            <button onclick="switchScreen('modules')" class="flex flex-col items-center text-slate-400 hover:text-purple-400 font-bold active:scale-90 transition-transform">
+                <i class="fa-solid fa-map text-xl"></i><span class="text-[10px] mt-0.5">Islands</span>
             </button>
-            <button onclick="switchScreen('shop')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-pink-500">
-                <span class="text-xl"><i class="fa-solid fa-shirt"></i></span>
-                <span class="text-[10px] font-bold">Shop</span>
+            <button onclick="switchScreen('shop')" class="flex flex-col items-center text-slate-400 hover:text-pink-400 font-bold active:scale-90 transition-transform">
+                <i class="fa-solid fa-shirt text-xl"></i><span class="text-[10px] mt-0.5">Shop</span>
             </button>
-            <button onclick="switchScreen('stickers')" class="flex flex-col items-center space-y-1 text-gray-400 hover:text-indigo-500">
-                <span class="text-xl"><i class="fa-solid fa-stamp"></i></span>
-                <span class="text-[10px] font-bold">Stickers</span>
+            <button onclick="switchScreen('rewards')" class="flex flex-col items-center text-slate-400 hover:text-indigo-400 font-bold active:scale-90 transition-transform">
+                <i class="fa-solid fa-gift text-xl"></i><span class="text-[10px] mt-0.5">Prizes</span>
             </button>
         </div>
 
     </div>
 
-    <!-- AUDIO, GAME LOGIC, PROCEDURAL GENERATION -->
+    <!-- ENGINE CODE CORE IMPLEMENTATION INTERACTIVITY -->
     <script>
-        const SAVE_KEY = "MATHBLOOM_ARCADE_SAVE_DATA";
-        
-        // --- GAME SYSTEM PROGRESS STATE ---
-        let appProgress = {
+        const SAVE_STORAGE_KEY = "MATHBLOOM_KIDS_PERSISTENT_DATA_v1";
+
+        // --- GLOBAL CORE DATA ARCHITECTURE MODEL (ALL 30 MODULE TRACKS) ---
+        const EDUCATIONAL_MODULES = [
+            { id: 1, name: "Counting (1–20)", icon: "🐰", category: "counting" },
+            { id: 2, name: "Counting (20–50)", icon: "🐼", category: "counting" },
+            { id: 3, name: "Number Recognition", icon: "🔢", category: "numbers" },
+            { id: 4, name: "Number Writing & Tracing", icon: "✏️", category: "numbers" },
+            { id: 5, name: "Number Sequencing", icon: "🚂", category: "logic" },
+            { id: 6, name: "Missing Numbers", icon: "🕳️", category: "logic" },
+            { id: 7, name: "Before & After Numbers", icon: "↔️", category: "logic" },
+            { id: 8, name: "Compare Numbers", icon: "⚖️", category: "comparison" },
+            { id: 9, name: "Even & Odd Intro", icon: "🌗", category: "numbers" },
+            { id: 10, name: "Shapes Identification", icon: "📐", category: "shapes" },
+            { id: 11, name: "Shape Matching", icon: "🧩", category: "shapes" },
+            { id: 12, name: "Shape Puzzles", icon: "🖼️", category: "shapes" },
+            { id: 13, name: "Colors Wonderland", icon: "🎨", category: "shapes" },
+            { id: 14, name: "Sorting Objects", icon: "🧺", category: "logic" },
+            { id: 15, name: "Patterns Garden", icon: "🌺", category: "logic" },
+            { id: 16, name: "Size Comparison", icon: "🦒", category: "comparison" },
+            { id: 17, name: "Addition (0–10)", icon: "➕", category: "math" },
+            { id: 18, name: "Addition (Within 20)", icon: "🚀", category: "math" },
+            { id: 19, name: "Subtraction (0–10)", icon: "➖", category: "math" },
+            { id: 20, name: "Subtraction (Within 20)", icon: "🛸", category: "math" },
+            { id: 21, name: "Picture Word Problems", icon: "📖", category: "math" },
+            { id: 22, name: "Money Recognition", icon: "🪙", category: "practical" },
+            { id: 23, name: "Time Basics", icon: "⏰", category: "practical" },
+            { id: 24, name: "Days of the Week", icon: "📅", category: "practical" },
+            { id: 25, name: "Months of the Year", icon: "📆", category: "practical" },
+            { id: 26, name: "Simple Measurement", icon: "📏", category: "practical" },
+            { id: 27, name: "Position & Direction", icon: "🗺️", category: "logic" },
+            { id: 28, name: "Logic & Thinking", icon: "🧠", category: "logic" },
+            { id: 29, name: "Memory Skills", icon: "🃏", category: "logic" },
+            { id: 30, name: "Mixed Math Challenge", icon: "🏆", category: "math" }
+        ];
+
+        const LEVEL_STAGES = [
+            { grade: 1, label: "Beginner" },
+            { grade: 2, label: "Easy" },
+            { grade: 3, label: "Medium" },
+            { grade: 4, label: "Advanced" },
+            { grade: 5, label: "Master" }
+        ];
+
+        const ASSET_CATALOG = {
+            themes: ["🐱", "🐶", "🦊", "🐻", "🦁", "🐨", "🐸", "🐵", "🦄", "🐣", "🐳", "🐙"],
+            fruits: ["🍓", "🍉", "🍌", "🍎", "🍊", "🍒", "🍇", "🍍", "🥑", "🥕"],
+            shapes: ["Circle", "Square", "Triangle", "Rectangle", "Oval", "Star", "Heart", "Diamond", "Pentagon", "Hexagon"],
+            colors: ["Red", "Blue", "Green", "Yellow", "Pink", "Purple", "Orange"]
+        };
+
+        const SHOP_ITEMS = [
+            { id: "crown", emoji: "👑", label: "Royal Tiara", gemCost: 5 },
+            { id: "glasses", emoji: "🕶️", label: "Cool Shades", gemCost: 10 },
+            { id: "hat", emoji: "🎩", label: "Wizard Hat", gemCost: 15 },
+            { id: "bow", emoji: "🎀", label: "Pink Ribbon", gemCost: 8 },
+            { id: "cap", emoji: "🎓", label: "Scholar Cap", gemCost: 20 }
+        ];
+
+        const STICKER_COLLECTION = [
+            { id: "st1", emoji: "🦁", title: "Safari King", costStars: 2 },
+            { id: "st2", emoji: "🦄", title: "Cosmic Sparkle", costStars: 5 },
+            { id: "st3", emoji: "🐬", title: "Happy Splash", costStars: 10 },
+            { id: "st4", emoji: "🦖", title: "Baby Dino", costStars: 15 },
+            { id: "st5", emoji: "🚀", title: "Star Rocket", costStars: 25 },
+            { id: "st6", emoji: "🏰", title: "Dream Palace", costStars: 40 }
+        ];
+
+        const NURSE_CHEERS = [
+            "Fantastic job!", "You are absolute magic!", "Wonderful thinking!", 
+            "Incredible work!", "High five! You solved it!", "Super star accuracy!"
+        ];
+
+        // --- APP INSTANCE SYSTEM STATE ARCHITECTURE ---
+        let profileState = {
             stars: 0,
-            gems: 15,
+            coins: 0,
+            gems: 5,
             streak: 1,
-            lastPlayedDate: new Date().toDateString(),
-            completedLevels: {},
-            perfectLevels: {},
-            totalCorrect: 0,
-            totalIncorrect: 0,
-            audioEnabled: true,
-            selectedMascot: "🦊",
-            selectedAccessory: "",
-            purchasedAccessories: []
+            lastLoginDate: new Date().toDateString(),
+            completedLevels: {}, // structured as "moduleID_levelID": true
+            totalCorrectAnswers: 0,
+            totalIncorrectAnswers: 0,
+            equippedItemEmoji: "",
+            purchasedItemIds: []
         };
 
-        const SHOP_ACCESSORIES = [
-            { id: "crown", emoji: "👑", name: "Royal Crown", cost: 5 },
-            { id: "glasses", emoji: "🕶️", name: "Cool Shades", cost: 10 },
-            { id: "hat", emoji: "🎩", name: "Wizard Hat", cost: 15 },
-            { id: "horns", emoji: "😈", name: "Cute Horns", cost: 20 },
-            { id: "bow", emoji: "🎀", name: "Fancy Bow", cost: 8 }
-        ];
-
-        const PLAY_THEMES = {
-            dinosaurs: ["🦖", "🦕", "🦎", "🐉"],
-            space: ["🚀", "🪐", "👽", "🛰️", "🛸"],
-            ocean: ["🐙", "🦑", "🐠", "🐡", "🐬", "🐳", "🦈"],
-            fruits: ["🍓", "🍉", "🍒", "🍇", "🍎", "🍊", "🍌"],
-            vehicles: ["🚗", "🚒", "🚑", "🚌", "🛩️", "⛵", "🚂"]
+        let sessionState = {
+            activeModuleId: 1,
+            activeLevelStage: 1,
+            activeQuestionIdx: 0,
+            totalSessionCorrect: 0,
+            activeQuestionPool: []
         };
 
-        const MODULE_REGISTRY = [
-            { id: 1, name: "Counting Safari", icon: "🦁", desc: "Interactive animal counting and fun feeds." },
-            { id: 2, name: "Number Island", icon: "🔢", desc: "Tap the bouncing balloons and unlock numbers!" },
-            { id: 3, name: "Comparisons Sea", icon: "⚖️", desc: "Sort ocean monsters from biggest to smallest!" },
-            { id: 4, name: "Shapes Magic", icon: "📐", desc: "Recognize stars, diamonds, circles, and squares." },
-            { id: 5, name: "Addition Space", icon: "➕", desc: "Launch rockets with cosmic picture arithmetic!" }
-        ];
-
-        const MASCOT_MESSAGES = [
-            "You are doing so great!",
-            "Whoa, look at you go!",
-            "Let's solve some puzzles together!",
-            "I love when we learn math!",
-            "Tap my nose! Haha!"
-        ];
-
-        // --- SYNTHESIZER AUDIO ENGINE ---
-        let audioCtx = null;
-        function getAudioContext() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            return audioCtx;
+        // --- PROCEDURAL AUDIO GENERATION ENGINE ---
+        let soundSystemInstance = null;
+        function getSoundContext() {
+            if (!soundSystemInstance) {
+                soundSystemInstance = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (soundSystemInstance.state === 'suspended') {
+                soundSystemInstance.resume();
+            }
+            return soundSystemInstance;
         }
 
-        function playSoundEffect(type) {
-            if (!appProgress.audioEnabled) return;
+        function playSoundChime(variant) {
             try {
-                const ctx = getAudioContext();
+                const ctx = getSoundContext();
                 const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                const time = ctx.currentTime;
+                const amp = ctx.createGain();
+                osc.connect(amp);
+                amp.connect(ctx.destination);
+                const baseTime = ctx.currentTime;
 
-                if (type === 'success') {
-                    // Upward bright arpeggio
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, time); // C5
-                    osc.frequency.setValueAtTime(659.25, time + 0.1); // E5
-                    osc.frequency.setValueAtTime(783.99, time + 0.2); // G5
-                    osc.frequency.setValueAtTime(1046.50, time + 0.3); // C6
-                    gain.gain.setValueAtTime(0, time);
-                    gain.gain.linearRampToValueAtTime(0.15, time + 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
-                    osc.start(time);
-                    osc.stop(time + 0.55);
-                } else if (type === 'error') {
-                    // Low sad buzz
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(180, time);
-                    osc.frequency.exponentialRampToValueAtTime(90, time + 0.3);
-                    gain.gain.setValueAtTime(0.15, time);
-                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.3);
-                    osc.start(time);
-                    osc.stop(time + 0.3);
-                } else if (type === 'tap') {
+                if (variant === 'success') {
+                    // Joyful musical high triad chord
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, time);
-                    osc.frequency.exponentialRampToValueAtTime(400, time + 0.08);
-                    gain.gain.setValueAtTime(0.08, time);
-                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.08);
-                    osc.start(time);
-                    osc.stop(time + 0.08);
+                    osc.frequency.setValueAtTime(523.25, baseTime); // C5
+                    osc.frequency.setValueAtTime(659.25, baseTime + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, baseTime + 0.2); // G5
+                    amp.gain.setValueAtTime(0, baseTime);
+                    amp.gain.linearRampToValueAtTime(0.2, baseTime + 0.05);
+                    amp.gain.exponentialRampToValueAtTime(0.01, baseTime + 0.4);
+                    osc.start(baseTime);
+                    osc.stop(baseTime + 0.45);
+                } else if (variant === 'failure') {
+                    // Soft, non-punitive gentle low boing sound
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, baseTime);
+                    osc.frequency.linearRampToValueAtTime(140, baseTime + 0.25);
+                    amp.gain.setValueAtTime(0.2, baseTime);
+                    amp.gain.exponentialRampToValueAtTime(0.01, baseTime + 0.25);
+                    osc.start(baseTime);
+                    osc.stop(baseTime + 0.26);
+                } else {
+                    // Soft interface tick sound
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(580, baseTime);
+                    amp.gain.setValueAtTime(0.08, baseTime);
+                    amp.gain.exponentialRampToValueAtTime(0.01, baseTime + 0.08);
+                    osc.start(baseTime);
+                    osc.stop(baseTime + 0.09);
                 }
-            } catch (e) {
-                console.log("Audio waiting for interaction");
+            } catch (err) {
+                console.log("Audio pipeline deferred until user interaction.");
             }
         }
 
-        // --- GENTLE VOICE NARRATION ---
-        function speak(text) {
-            if (!appProgress.audioEnabled) return;
+        // --- WEB AUDIO TEXT TO SPEECH NARRATION NATIVE WRAPPER ---
+        function clearAndNarratePrompt(phrase) {
             try {
                 window.speechSynthesis.cancel();
-                const sentence = new SpeechSynthesisUtterance(text);
-                sentence.lang = 'en-US';
-                sentence.pitch = 1.3;
-                sentence.rate = 0.85;
-                window.speechSynthesis.speak(sentence);
-            } catch (e) {
-                console.warn(e);
+                const utterance = new SpeechSynthesisUtterance(phrase);
+                utterance.lang = 'en-US';
+                utterance.pitch = 1.35; // Cute playful child-friendly tone
+                utterance.rate = 0.85;  // Slow, distinct speed for 4-6 age range
+                window.speechSynthesis.speak(utterance);
+            } catch (err) {
+                console.warn("Speech Synthesis engine exception context: ", err);
             }
         }
 
-        // --- INTERACTIVE DRAG-AND-DROP GAMEPLAY CONVERTER ---
-        function generateModuleQuestion(moduleId, level, qIndex) {
-            const themes = Object.keys(PLAY_THEMES);
-            const selectedThemeKey = themes[(qIndex + level) % themes.length];
-            const themeSet = PLAY_THEMES[selectedThemeKey];
-            const emoji = themeSet[qIndex % themeSet.length];
+        // --- DYNAMIC ALGORITHMIC 15-QUESTION COMPONENT GENERATOR ---
+        function compileLevelQuestionPool(modId, stageId) {
+            let compiledList = [];
+            
+            for (let q = 0; q < 15; q++) {
+                let questionObj = {
+                    promptText: "",
+                    vocalNarrationText: "",
+                    gameViewType: "simple-grid",
+                    visualPayload: null,
+                    choicesArray: [],
+                    targetCorrectAnswer: ""
+                };
 
-            switch(moduleId) {
-                case 1: // Counting Safari
-                    const count = Math.max(1, (qIndex % 8) + 1);
-                    return {
-                        type: "feed_monster",
-                        count: count,
-                        emoji: emoji,
-                        question: `Barnaby the Monster is hungry! Drag & Feed him exactly ${count} ${selectedThemeKey}!`,
-                        speakText: `Barnaby the Monster is hungry! Drag and Feed him exactly ${count} items!`
-                    };
-                case 2: // Number Island
-                    const num = Math.max(1, (qIndex * 2 + level) % 20);
-                    return {
-                        type: "tap_balloon",
-                        targetNum: num,
-                        question: `Pop the bouncing balloon containing the correct number: ${num}!`,
-                        options: shuffleOptions([num, num+1, num+2, Math.max(0, num-1)]),
-                        answer: num,
-                        speakText: `Pop the bouncing balloon containing the correct number: ${num}!`
-                    };
-                case 3: // Comparisons Sea
-                    const valA = Math.max(1, (qIndex * 3) % 15);
-                    const valB = Math.max(1, (qIndex * 3 + 4) % 15);
-                    const compType = qIndex % 2 === 0 ? "BIGGER" : "SMALLER";
-                    const correctVal = compType === "BIGGER" ? Math.max(valA, valB) : Math.min(valA, valB);
-                    return {
-                        type: "comparison",
-                        leftVal: valA,
-                        rightVal: valB,
-                        emoji: emoji,
-                        question: `Which set of ${selectedThemeKey} is ${compType}?`,
-                        options: [valA, valB],
-                        answer: correctVal,
-                        speakText: `Which set has the ${compType} amount?`
-                    };
-                case 4: // Shapes Magic
-                    const shapesList = ["Circle", "Square", "Triangle", "Star", "Heart"];
-                    const targetShape = shapesList[qIndex % shapesList.length];
-                    const others = shapesList.filter(s => s !== targetShape);
-                    return {
-                        type: "shape",
-                        shape: targetShape.toLowerCase(),
-                        question: `Find and tap the name of this shiny shape!`,
-                        options: shuffleOptions([targetShape, others[0], others[1], others[2]]),
-                        answer: targetShape,
-                        speakText: `Find and tap the name of this shiny shape!`
-                    };
-                case 5: // Addition Space
-                    const a1 = Math.max(1, qIndex % 5 + level);
-                    const a2 = Math.max(1, (qIndex + 2) % 4 + 1);
-                    const sum = a1 + a2;
-                    return {
-                        type: "addition",
-                        visual: `${emoji.repeat(a1)} + ${emoji.repeat(a2)}`,
-                        question: `Rocket Launch Code! What is ${a1} + ${a2}?`,
-                        options: shuffleOptions([sum, sum+1, Math.max(1, sum-1), sum+2]),
-                        answer: sum,
-                        speakText: `What is ${a1} plus ${a2}?`
-                    };
+                const dynamicFactor = (stageId * 3) + q;
+                const randomEmoji = ASSET_CATALOG.themes[q % ASSET_CATALOG.themes.length];
+                const fruitsArr = ASSET_CATALOG.fruits;
+
+                // Implement individual algorithmic routing matching specific modules out of the 30 learning requirements
+                if (modId === 1) { // Counting 1-20
+                    const countTarget = Math.min(20, (q % 5) + 1 + (stageId * 3));
+                    questionObj.promptText = `Count them up! How many animal buddies can you see?`;
+                    questionObj.vocalNarrationText = questionObj.promptText;
+                    questionObj.visualPayload = { emoji: randomEmoji, amount: countTarget };
+                    questionObj.choicesArray = generateNumericShuffledOptions(countTarget, 4);
+                    questionObj.targetCorrectAnswer = String(countTarget);
+                }
+                else if (modId === 2) { // Counting 20-50
+                    const baseCount = 20 + (stageId * 5) + (q % 5);
+                    questionObj.promptText = `Wow, look at all the sweets! Count the yummy treats:`;
+                    questionObj.vocalNarrationText = questionObj.promptText;
+                    questionObj.visualPayload = { emoji: "🍓", amount: baseCount };
+                    questionObj.choicesArray = generateNumericShuffledOptions(baseCount, 4);
+                    questionObj.targetCorrectAnswer = String(baseCount);
+                }
+                else if (modId === 3 || modId === 4) { // Number Recognition / Tracing Intro Mode
+                    const targetNum = dynamicFactor + 1;
+                    questionObj.promptText = `Can you pick and match the beautiful number: ${targetNum}?`;
+                    questionObj.vocalNarrationText = `Can you find the number ${targetNum}?`;
+                    questionObj.choicesArray = generateNumericShuffledOptions(targetNum, 4);
+                    questionObj.targetCorrectAnswer = String(targetNum);
+                }
+                else if (modId === 5 || modId === 6 || modId === 7) { // Sequencing & Missing Link Tracks
+                    const startSeq = q + stageId;
+                    const holeIndex = q % 3; 
+                    let seqArr = [startSeq, startSeq + 1, startSeq + 2];
+                    const targetedAnswer = seqArr[holeIndex];
+                    seqArr[holeIndex] = "?";
+                    
+                    questionObj.promptText = `Find the missing magic number on the train: ${seqArr.join(" , ")}`;
+                    questionObj.vocalNarrationText = `What is the missing number in this pattern?`;
+                    questionObj.choicesArray = generateNumericShuffledOptions(targetedAnswer, 4);
+                    questionObj.targetCorrectAnswer = String(targetedAnswer);
+                }
+                else if (modId === 8 || modId === 16) { // Comparisons & Sizes
+                    const sideA = 3 + (q % 4) + stageId;
+                    const sideB = 2 + (q % 3);
+                    const pickBigger = (q % 2 === 0);
+                    
+                    if (sideA === sideB) {
+                        questionObj.promptText = `Are these groups Equal? True or False?`;
+                        questionObj.choicesArray = ["True", "False"];
+                        questionObj.targetCorrectAnswer = "True";
+                    } else {
+                        const correctVal = pickBigger ? Math.max(sideA, sideB) : Math.min(sideA, sideB);
+                        questionObj.promptText = `Which number is ${pickBigger ? 'BIGGER' : 'SMALLER'}? [ ${sideA} vs ${sideB} ]`;
+                        questionObj.choicesArray = [String(sideA), String(sideB)];
+                        questionObj.targetCorrectAnswer = String(correctVal);
+                    }
+                    questionObj.vocalNarrationText = questionObj.promptText;
+                }
+                else if (modId === 10 || modId === 11 || modId === 12) { // Shapes Matrix Layouts
+                    const selectedShape = ASSET_CATALOG.shapes[q % ASSET_CATALOG.shapes.length];
+                    questionObj.promptText = `Tap the option that says: ${selectedShape}!`;
+                    questionObj.vocalNarrationText = `Find the ${selectedShape}!`;
+                    questionObj.choicesArray = shuffleSimpleArray([selectedShape, "Circle", "Triangle", "Hexagon"].filter((v, i, a) => a.indexOf(v) === i).slice(0,4));
+                    questionObj.targetCorrectAnswer = selectedShape;
+                }
+                else if (modId === 13) { // Colors track
+                    const targetedColor = ASSET_CATALOG.colors[q % ASSET_CATALOG.colors.length];
+                    questionObj.promptText = `Which word matches the bright color of a rainbow: ${targetedColor}?`;
+                    questionObj.vocalNarrationText = `Find the color ${targetedColor}!`;
+                    questionObj.choicesArray = shuffleSimpleArray([targetedColor, "Blue", "Yellow", "Pink"].filter((v, i, a) => a.indexOf(v) === i).slice(0,4));
+                    questionObj.targetCorrectAnswer = targetedColor;
+                }
+                else if (modId >= 17 && modId <= 18) { // Addition Mechanics Modules
+                    const firstFactor = (q % 4) + stageId;
+                    const secondFactor = 1 + (q % 3);
+                    const resultSum = firstFactor + secondFactor;
+                    
+                    questionObj.promptText = `Solve the puzzle: What is ${firstFactor} + ${secondFactor}?`;
+                    questionObj.vocalNarrationText = `What is ${firstFactor} plus ${secondFactor}?`;
+                    questionObj.visualPayload = { expr: `${firstFactor} + ${secondFactor} = ?` };
+                    questionObj.choicesArray = generateNumericShuffledOptions(resultSum, 4);
+                    questionObj.targetCorrectAnswer = String(resultSum);
+                }
+                else if (modId >= 19 && modId <= 20) { // Subtraction tracks
+                    const firstFactor = 10 + (q % 5) + stageId;
+                    const secondFactor = (q % 4) + 1;
+                    const resultDiff = firstFactor - secondFactor;
+                    
+                    questionObj.promptText = `Solve the math: What is ${firstFactor} - ${secondFactor}?`;
+                    questionObj.vocalNarrationText = `What is ${firstFactor} minus ${secondFactor}?`;
+                    questionObj.visualPayload = { expr: `${firstFactor} - ${secondFactor} = ?` };
+                    questionObj.choicesArray = generateNumericShuffledOptions(resultDiff, 4);
+                    questionObj.targetCorrectAnswer = String(resultDiff);
+                }
+                else { // Fallback universal logic templates for remaining preschool modules (Days, Money, Time, Direction)
+                    const sampleAnswers = ["Left", "Right", "Monday", "Clock", "Big", "Small"];
+                    const fallBackAns = sampleAnswers[q % sampleAnswers.length];
+                    questionObj.promptText = `Preschool Challenge: Find and choose the correct math option: [${fallBackAns}]`;
+                    questionObj.vocalNarrationText = `Can you tap ${fallBackAns}?`;
+                    questionObj.choicesArray = shuffleSimpleArray([fallBackAns, "Up", "Sunday", "Inside"]);
+                    questionObj.targetCorrectAnswer = fallBackAns;
+                }
+
+                compiledList.push(questionObj);
             }
+            return compiledList;
         }
 
-        function shuffleOptions(arr) {
-            return arr.map(a => String(a)).sort(() => Math.random() - 0.5);
+        function generateNumericShuffledOptions(correctVal, desiredCount) {
+            let uniqueSet = new Set();
+            uniqueSet.add(String(correctVal));
+            while (uniqueSet.size < desiredCount) {
+                let variance = Math.floor(Math.random() * 7) - 3;
+                let candidate = correctVal + variance;
+                if (candidate >= 0) {
+                    uniqueSet.add(String(candidate));
+                }
+            }
+            return shuffleSimpleArray(Array.from(uniqueSet));
         }
 
-        // --- GAMEPLAY SESSION CONTROLLER ---
-        let currentGame = {
-            moduleId: 1,
-            levelIndex: 1,
-            currentIndex: 0,
-            score: 0,
-            incorrectAttempts: 0,
-            questions: []
-        };
+        function shuffleSimpleArray(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
 
-        function switchScreen(screenName) {
-            playSoundEffect('tap');
-            const screens = ['home', 'modules', 'levels', 'play', 'summary', 'parents', 'shop', 'stickers'];
-            screens.forEach(s => {
-                const el = document.getElementById(`screen-${s}`);
-                if (el) el.classList.add('hidden');
+        // --- NAVIGATION ROUTING CONSOLE SYSTEM ---
+        function switchScreen(targetScreenId) {
+            playSoundChime('click');
+            
+            const universalScreenIds = ['home', 'modules', 'levels', 'play', 'summary', 'shop', 'rewards', 'parents'];
+            universalScreenIds.forEach(id => {
+                const node = document.getElementById(`screen-${id}`);
+                if (node) node.classList.add('hidden');
             });
 
-            const activeEl = document.getElementById(`screen-${screenName}`);
-            if (activeEl) activeEl.classList.remove('hidden');
+            const activeNode = document.getElementById(`screen-${targetScreenId}`);
+            if (activeNode) activeNode.classList.remove('hidden');
 
-            if (screenName === 'modules') renderModulesMenu();
-            if (screenName === 'shop') renderShopInventory();
-            if (screenName === 'stickers') renderStickerBook();
-            if (screenName === 'home') renderHomeMascot();
+            // Lifecycle layout triggers
+            if (targetScreenId === 'modules') buildModulesSelectionMap();
+            if (targetScreenId === 'shop') buildDressUpCatalogSurface();
+            if (targetScreenId === 'rewards') buildPrizeAlbumSurface();
+            if (targetScreenId === 'home') renderMascotStateInterface();
         }
 
-        function renderHomeMascot() {
-            const mascotHome = document.getElementById('mascot-home');
-            mascotHome.innerHTML = `
-                ${appProgress.selectedMascot}
-                <span class="absolute -top-3 -right-3 text-4xl">${appProgress.selectedAccessory}</span>
-            `;
+        // --- MASCOT CUSTOMIZATION RENDER LIFECYCLE ---
+        function renderMascotStateInterface() {
+            document.getElementById('home-equipped-item').innerText = profileState.equippedItemEmoji;
         }
 
-        function petMascot() {
-            playSoundEffect('success');
-            const bubble = document.getElementById('mascot-bubble');
-            bubble.innerText = MASCOT_MESSAGES[Math.floor(Math.random() * MASCOT_MESSAGES.length)];
-            triggerVisualParticles(window.innerWidth / 2, window.innerHeight / 2.5);
+        function tapMascotExpression() {
+            playSoundChime('success');
+            triggerVisualExplosionParticles(window.innerWidth / 2, window.innerHeight / 3);
+            const alerts = ["You are doing great!", "Let's discover math power!", "Tap my ears! Haha!", "You sparkle inside!"];
+            document.getElementById('mascot-speech-bubble').innerText = alerts[Math.floor(Math.random() * alerts.length)];
         }
 
-        function renderModulesMenu() {
-            const container = document.getElementById('modules-list-container');
+        // --- MODULE & PROGRESS BUILDERS ---
+        function buildModulesSelectionMap() {
+            const container = document.getElementById('modules-list-wrapper');
             container.innerHTML = "";
 
-            MODULE_REGISTRY.forEach(mod => {
+            EDUCATIONAL_MODULES.forEach(m => {
+                let masteredCount = 0;
+                for (let levelIdx = 1; levelIdx <= 5; levelIdx++) {
+                    if (profileState.completedLevels[`${m.id}_${levelIdx}`]) masteredCount++;
+                }
+
                 container.innerHTML += `
-                    <div onclick="selectModule(${mod.id})" class="p-5 rounded-3xl border-4 border-slate-200 bg-white shadow-md flex items-center space-x-3 hover:scale-[1.02] cursor-pointer transition-transform">
-                        <span class="text-5xl">${mod.icon}</span>
-                        <div class="flex-1">
-                            <h3 class="font-bold text-gray-800 text-base">${mod.name}</h3>
-                            <p class="text-xs text-gray-500 leading-tight">${mod.desc}</p>
+                    <div onclick="initiateSelectedModuleWorkflow(${m.id})" class="p-3.5 bg-white rounded-2xl border-2 border-purple-100 flex items-center justify-between shadow-xs hover:scale-[1.01] active:scale-95 transition-transform cursor-pointer">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-3xl p-1 bg-purple-50 rounded-xl">${m.icon}</span>
+                            <div>
+                                <h4 class="font-bold text-slate-700 text-sm leading-tight">${m.name}</h4>
+                                <span class="text-[10px] text-purple-500 font-medium tracking-wide">Status: ${masteredCount}/5 Worlds Mastered</span>
+                            </div>
                         </div>
+                        <span class="text-slate-300 text-sm"><i class="fa-solid fa-chevron-right"></i></span>
                     </div>
                 `;
             });
         }
 
-        function selectModule(moduleId) {
-            currentGame.moduleId = moduleId;
-            const targetMod = MODULE_REGISTRY.find(m => m.id === moduleId);
-            document.getElementById('level-screen-title').innerText = targetMod.name;
+        function initiateSelectedModuleWorkflow(modId) {
+            sessionState.activeModuleId = modId;
+            const targetMetadata = EDUCATIONAL_MODULES.find(m => m.id === modId);
+            document.getElementById('level-module-title').innerText = targetMetadata.name;
 
-            const container = document.getElementById('level-list-container');
+            const container = document.getElementById('levels-buttons-wrapper');
             container.innerHTML = "";
 
-            for (let lvl = 1; lvl <= 5; lvl++) {
-                const levelKey = `${moduleId}_${lvl}`;
-                const prevLevelKey = `${moduleId}_${lvl-1}`;
-                const isCompleted = appProgress.completedLevels[levelKey];
-                const isUnlocked = lvl === 1 || appProgress.completedLevels[prevLevelKey];
+            LEVEL_STAGES.forEach(lvl => {
+                const uniqueKey = `${modId}_${lvl.grade}`;
+                const prevUniqueKey = `${modId}_${lvl.grade - 1}`;
+                const isCleared = profileState.completedLevels[uniqueKey];
+                const isAccessible = lvl.grade === 1 || profileState.completedLevels[prevUniqueKey];
 
-                if (isUnlocked) {
+                if (isAccessible) {
                     container.innerHTML += `
-                        <div class="p-4 rounded-3xl border-4 border-emerald-300 bg-white flex items-center justify-between shadow-sm">
+                        <div class="bg-white border-2 border-teal-200 p-3 rounded-2xl flex justify-between items-center shadow-xs">
                             <div>
-                                <span class="font-bold text-gray-800">Mission ${lvl}</span>
-                                ${isCompleted ? '<span class="block text-xs text-amber-500 font-bold">⭐ Solved!</span>' : '<span class="block text-xs text-emerald-500 font-bold">Unlocked</span>'}
+                                <h4 class="font-bold text-slate-800 text-sm">${lvl.label} (Level ${lvl.grade})</h4>
+                                <span class="text-[10px] ${isCleared ? 'text-amber-500' : 'text-emerald-500'} font-bold">
+                                    ${isCleared ? '⭐ 100% Passed!' : '🎯 Available Now'}
+                                </span>
                             </div>
-                            <button onclick="launchGamePlay(${lvl})" class="bg-emerald-400 text-white font-bold py-2 px-5 rounded-2xl border-b-4 border-emerald-600">Enter</button>
+                            <button onclick="startExerciseGameplayLoop(${lvl.grade})" class="bg-gradient-to-r from-teal-400 to-emerald-400 text-white font-bold px-4 py-1.5 rounded-xl text-xs border-b-2 border-teal-600">Enter</button>
                         </div>
                     `;
                 } else {
                     container.innerHTML += `
-                        <div class="p-4 rounded-3xl border-4 border-gray-100 bg-gray-50 opacity-60 flex items-center justify-between">
-                            <div><span class="font-bold text-gray-400">Mission ${lvl}</span></div>
-                            <span class="text-xl text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                        <div class="bg-slate-50 border-2 border-dashed border-slate-200 p-3 rounded-2xl flex justify-between items-center opacity-60">
+                            <div>
+                                <h4 class="font-bold text-slate-400 text-sm">${lvl.label} (Level ${lvl.grade})</h4>
+                                <span class="text-[10px] text-slate-400 font-bold">🔒 Complete previous stage</span>
+                            </div>
+                            <span class="text-slate-300 pr-2"><i class="fa-solid fa-lock text-sm"></i></span>
                         </div>
                     `;
                 }
-            }
+            });
+
             switchScreen('levels');
         }
 
-        function launchGamePlay(lvl) {
-            currentGame.levelIndex = lvl;
-            currentGame.currentIndex = 0;
-            currentGame.score = 0;
-            currentGame.incorrectAttempts = 0;
-            currentGame.questions = [];
+        // --- ENGINE CONTROLLER SESSION INITIALIZATION ---
+        function startExerciseGameplayLoop(stageId) {
+            sessionState.activeLevelStage = stageId;
+            sessionState.activeQuestionIdx = 0;
+            sessionState.totalSessionCorrect = 0;
+            sessionState.activeQuestionPool = compileLevelQuestionPool(sessionState.activeModuleId, stageId);
 
-            for (let i = 0; i < 20; i++) {
-                currentGame.questions.push(generateModuleQuestion(currentGame.moduleId, lvl, i));
-            }
+            const activeModMeta = EDUCATIONAL_MODULES.find(m => m.id === sessionState.activeModuleId);
+            document.getElementById('play-title-node').innerText = `${activeModMeta.name} • Lvl ${stageId}`;
 
             switchScreen('play');
-            displayActiveQuestion();
+            displayCurrentIndexQuestion();
         }
 
-        // --- SANDBOX LIVE FEED PLAYBOARD ENGINE ---
-        let itemsFedCount = 0;
+        function displayCurrentIndexQuestion() {
+            const dataNode = sessionState.activeQuestionPool[sessionState.activeQuestionIdx];
+            
+            document.getElementById('play-counter-node').innerText = `${sessionState.activeQuestionIdx + 1} / 15`;
+            document.getElementById('play-question-prompt').innerText = dataNode.promptText;
+            document.getElementById('play-live-feedback').innerText = "";
 
-        function displayActiveQuestion() {
-            const task = currentGame.questions[currentGame.currentIndex];
-            document.getElementById('play-level-indicator').innerText = `Level ${currentGame.levelIndex}`;
-            document.getElementById('play-progress-indicator').innerText = `Question ${currentGame.currentIndex + 1}/20`;
-            document.getElementById('play-question-text').innerText = task.question;
-            document.getElementById('play-feedback-text').innerText = "";
+            const boardSurface = document.getElementById('play-gameboard-surface');
+            boardSurface.innerHTML = "";
 
-            const board = document.getElementById('play-visual-board');
-            board.innerHTML = "";
-
-            if (task.type === 'feed_monster') {
-                itemsFedCount = 0;
-                board.innerHTML = `
-                    <div class="flex flex-col items-center justify-center w-full space-y-4">
-                        <!-- Chomp Monster -->
-                        <div id="eating-monster" class="text-7xl monster-bounce transition-transform duration-150">👾</div>
-                        
-                        <!-- Drag items reservoir -->
-                        <div class="flex gap-2 justify-center py-2 bg-amber-50 rounded-2xl w-full flex-wrap" id="draggable-items-container">
-                            <!-- Items kids can tap to feed -->
-                        </div>
-                    </div>
-                `;
-                const container = document.getElementById('draggable-items-container');
-                for (let i = 0; i < task.count; i++) {
-                    container.innerHTML += `
-                        <span onclick="feedMonsterItem(this)" class="text-4xl cursor-pointer hover:scale-125 transition-transform active:scale-95 bg-white p-1 rounded-xl shadow-sm border border-amber-200">${task.emoji}</span>
-                    `;
+            // Dynamic visual component injector base template
+            if (dataNode.visualPayload && dataNode.visualPayload.amount) {
+                let itemsLayout = `<div class="grid grid-cols-5 gap-2 justify-center items-center">`;
+                for (let i = 0; i < dataNode.visualPayload.amount; i++) {
+                    itemsLayout += `<span class="text-3xl animate-bounce" style="animation-delay: ${i*0.05}s">${dataNode.visualPayload.emoji}</span>`;
                 }
+                itemsLayout += `</div>`;
+                boardSurface.innerHTML = itemsLayout;
+            } else if (dataNode.visualPayload && dataNode.visualPayload.expr) {
+                boardSurface.innerHTML = `<div class="kids-heading text-4xl text-purple-500 bg-purple-50 p-6 rounded-2xl tracking-wider">${dataNode.visualPayload.expr}</div>`;
+            } else {
+                boardSurface.innerHTML = `<span class="text-7xl animate-pulse">✨🧸✨</span>`;
+            }
 
-                // Answer controller buttons
-                const grid = document.getElementById('play-options-grid');
-                grid.innerHTML = `
-                    <button onclick="checkSelectedAnswer('done')" class="col-span-2 bg-emerald-400 hover:bg-emerald-500 border-b-8 border-emerald-600 text-white font-bold py-4 rounded-3xl text-lg shadow-md">
-                        Done Feeding!
+            // Options distribution architecture setup
+            const choicesWrapper = document.getElementById('play-choices-grid');
+            choicesWrapper.innerHTML = "";
+            dataNode.choicesArray.forEach(opt => {
+                choicesWrapper.innerHTML += `
+                    <button onclick="evaluateUserSessionSelection('${opt}')" class="bg-gradient-to-b from-white to-purple-50 hover:from-purple-100 hover:to-purple-200 text-slate-700 font-bold py-3 px-2 rounded-2xl border-2 border-purple-200 active:scale-95 transition-all text-sm shadow-xs">
+                        ${opt}
                     </button>
                 `;
-            } else if (task.type === 'tap_balloon') {
-                board.innerHTML = `<div class="flex justify-around items-center w-full h-full" id="balloon-yard"></div>`;
-                const yard = document.getElementById('balloon-yard');
-                task.options.forEach(opt => {
-                    yard.innerHTML += `
-                        <div onclick="checkSelectedAnswer('${opt}')" class="bg-indigo-400 hover:bg-indigo-500 text-white font-bold text-2xl w-14 h-18 rounded-t-full flex items-center justify-center cursor-pointer shadow-md transform hover:translate-y-[-10px] transition-all relative">
-                            🎈
-                            <span class="absolute text-white font-extrabold text-sm top-3">${opt}</span>
-                        </div>
-                    `;
-                });
-                const grid = document.getElementById('play-options-grid');
-                grid.innerHTML = "";
-            } else if (task.type === 'comparison') {
-                board.innerHTML = `
-                    <div class="flex justify-around w-full">
-                        <div class="flex flex-col items-center">
-                            <span class="text-xs font-bold text-gray-400">A</span>
-                            <span class="text-3xl">${task.emoji.repeat(task.leftVal)}</span>
-                            <span class="text-xs font-bold text-slate-700 mt-2">${task.leftVal} items</span>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <span class="text-xs font-bold text-gray-400">B</span>
-                            <span class="text-3xl">${task.emoji.repeat(task.rightVal)}</span>
-                            <span class="text-xs font-bold text-slate-700 mt-2">${task.rightVal} items</span>
-                        </div>
-                    </div>
-                `;
-                const grid = document.getElementById('play-options-grid');
-                grid.innerHTML = "";
-                task.options.forEach(opt => {
-                    grid.innerHTML += `
-                        <button onclick="checkSelectedAnswer('${opt}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 py-3.5 text-lg font-bold rounded-2xl text-amber-800 shadow-md">
-                            ${opt}
-                        </button>
-                    `;
-                });
-            } else if (task.type === 'shape') {
-                let shapeDesign = "";
-                if (task.shape === 'circle') shapeDesign = `<div class="w-20 h-20 bg-emerald-400 border-4 border-emerald-500 rounded-full"></div>`;
-                else if (task.shape === 'square') shapeDesign = `<div class="w-20 h-20 bg-sky-400 border-4 border-sky-500 rounded-xl"></div>`;
-                else if (task.shape === 'triangle') shapeDesign = `<div class="w-0 h-0 border-l-[40px] border-l-transparent border-r-[40px] border-r-transparent border-b-[70px] border-b-rose-400"></div>`;
-                else if (task.shape === 'star') shapeDesign = `<div class="text-7xl">⭐</div>`;
-                else shapeDesign = `<div class="text-7xl">❤️</div>`;
+            });
+
+            clearAndNarratePrompt(dataNode.vocalNarrationText);
+        }
+
+        function triggerVoiceReplay() {
+            const dataNode = sessionState.activeQuestionPool[sessionState.activeQuestionIdx];
+            if (dataNode) clearAndNarratePrompt(dataNode.vocalNarrationText);
+        }
+
+        function evaluateUserSessionSelection(chosenValue) {
+            const currentItem = sessionState.activeQuestionPool[sessionState.activeQuestionIdx];
+            const feedbackField = document.getElementById('play-live-feedback');
+
+            if (String(chosenValue).trim().toLowerCase() === String(currentItem.targetCorrectAnswer).trim().toLowerCase()) {
+                playSoundChime('success');
+                profileState.totalCorrectAnswers++;
+                sessionState.totalSessionCorrect++;
+                triggerVisualExplosionParticles(window.innerWidth / 2, window.innerHeight / 2);
+                feedbackField.className = "text-center font-bold text-sm h-5 text-emerald-500 animate-pulse";
+                feedbackField.innerText = NURSE_CHEERS[Math.floor(Math.random() * NURSE_CHEERS.length)];
                 
-                board.innerHTML = shapeDesign;
-
-                const grid = document.getElementById('play-options-grid');
-                grid.innerHTML = "";
-                task.options.forEach(opt => {
-                    grid.innerHTML += `
-                        <button onclick="checkSelectedAnswer('${opt}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 py-3.5 text-lg font-bold rounded-2xl text-amber-800 shadow-md">
-                            ${opt}
-                        </button>
-                    `;
-                });
-            } else if (task.type === 'addition') {
-                board.innerHTML = `<div class="text-3xl font-extrabold text-orange-500 tracking-wider">${task.visual}</div>`;
-                const grid = document.getElementById('play-options-grid');
-                grid.innerHTML = "";
-                task.options.forEach(opt => {
-                    grid.innerHTML += `
-                        <button onclick="checkSelectedAnswer('${opt}')" class="bg-amber-100 hover:bg-amber-200 border-b-8 border-amber-300 py-3.5 text-lg font-bold rounded-2xl text-amber-800 shadow-md">
-                            ${opt}
-                        </button>
-                    `;
-                });
-            }
-
-            speak(task.speakText);
-        }
-
-        function feedMonsterItem(element) {
-            playSoundEffect('tap');
-            const monster = document.getElementById('eating-monster');
-            monster.classList.add('eating');
-            setTimeout(() => monster.classList.remove('eating'), 600);
-
-            // Animate flying or disappear
-            element.classList.add('scale-0');
-            setTimeout(() => element.remove(), 200);
-
-            itemsFedCount += 1;
-        }
-
-        function checkSelectedAnswer(selected) {
-            const task = currentGame.questions[currentGame.currentIndex];
-            const feedbackEl = document.getElementById('play-feedback-text');
-
-            let isCorrect = false;
-            if (task.type === "feed_monster") {
-                isCorrect = itemsFedCount === task.count;
-            } else {
-                isCorrect = String(selected).toLowerCase().trim() === String(task.answer).toLowerCase().trim();
-            }
-
-            if (isCorrect) {
-                playSoundEffect('success');
-                triggerVisualParticles(window.innerWidth / 2, window.innerHeight / 2);
-                feedbackEl.innerHTML = "✨ Stellar Job! Keep going! ✨";
-
-                if (currentGame.incorrectAttempts === 0) {
-                    currentGame.score += 1;
-                }
+                // Immediate lock configuration protection sequence to block multi-clicks
+                document.getElementById('play-choices-grid').style.pointerEvents = "none";
 
                 setTimeout(() => {
-                    currentGame.currentIndex += 1;
-                    currentGame.incorrectAttempts = 0;
-                    if (currentGame.currentIndex < 20) {
-                        displayActiveQuestion();
-                    } else {
-                        concludeChallengeGame();
-                    }
-                }, 1400);
+                    document.getElementById('play-choices-grid').style.pointerEvents = "auto";
+                    advanceSessionQueue();
+                }, 1200);
             } else {
-                playSoundEffect('error');
-                currentGame.incorrectAttempts += 1;
-                feedbackEl.innerHTML = "✨ Keep trying! You've got this! ✨";
-                speak("Let's try again! You can do it!");
+                playSoundChime('failure');
+                profileState.totalIncorrectAnswers++;
+                feedbackField.className = "text-center font-bold text-sm h-5 text-pink-500";
+                feedbackField.innerText = "Let's try again! You can do it! ✨";
+                clearAndNarratePrompt("Let's try another one! You've got this!");
+            }
+            saveStateToLocalStorage();
+        }
+
+        function advanceSessionQueue() {
+            sessionState.activeQuestionIdx++;
+            if (sessionState.activeQuestionIdx < 15) {
+                displayCurrentIndexQuestion();
+            } else {
+                processAndRenderSessionSummary();
             }
         }
 
-        function concludeChallengeGame() {
-            const score = currentGame.score;
-            const lvl = currentGame.levelIndex;
-            const modId = currentGame.moduleId;
-            const levelKey = `${modId}_${lvl}`;
+        function processAndRenderSessionSummary() {
+            const correctTotal = sessionState.totalSessionCorrect;
+            const targetModId = sessionState.activeModuleId;
+            const targetLvlIdx = sessionState.activeLevelStage;
+            const keyComposite = `${targetModId}_${targetLvlIdx}`;
 
-            let starsEarned = 0;
-            let gemsEarned = 0;
-            let verdict = "";
-            let solvedSuccessfully = false;
+            // Rule constraint: Requires 12 out of 15 (80%) to unlock next level
+            const unlockedSuccess = correctTotal >= 12;
 
-            if (score === 20) {
-                starsEarned = 3;
-                gemsEarned = 10;
-                solvedSuccessfully = true;
-                verdict = "PERFECT SCORE! ⭐⭐⭐ You earned all 3 stars, a gold trophy, and 10 bonus gems!";
-                appProgress.perfectLevels[levelKey] = true;
-            } else if (score >= 18) {
-                starsEarned = 2;
-                gemsEarned = 5;
-                solvedSuccessfully = true;
-                verdict = "AMAZING JOB! ⭐⭐ You cleared the challenge level with flying colors!";
-            } else if (score >= 16) {
-                starsEarned = 1;
-                gemsEarned = 2;
-                solvedSuccessfully = true;
-                verdict = "GREAT JOB! ⭐ You unlocked the next stage!";
+            let starsGiven = 0;
+            let coinsGiven = 0;
+            let gemsGiven = 0;
+            let descriptiveVerdict = "";
+
+            if (unlockedSuccess) {
+                profileState.completedLevels[keyComposite] = true;
+                starsGiven = correctTotal === 15 ? 3 : (correctTotal >= 14 ? 2 : 1);
+                coinsGiven = correctTotal * 2;
+                gemsGiven = correctTotal === 15 ? 5 : 2;
+
+                profileState.stars += starsGiven;
+                profileState.coins += coinsGiven;
+                profileState.gems += gemsGiven;
+
+                descriptiveVerdict = `Wonderful! You correctly solved ${correctTotal} challenges. You earned new shiny badges for MathBloom Land!`;
+                document.getElementById('summary-verdict-title').innerText = "Level Cleared! 🎉";
+                document.getElementById('summary-badge-showcase').innerText = "🏆✨🦁";
             } else {
-                starsEarned = 0;
-                gemsEarned = 0;
-                solvedSuccessfully = false;
-                verdict = "Almost there! You got " + score + " out of 20. Let's try again!";
+                descriptiveVerdict = `You got ${correctTotal} out of 15 correct. Let's practice a bit more to unlock the next magic stage!`;
+                document.getElementById('summary-verdict-title').innerText = "Keep Practicing!";
+                document.getElementById('summary-badge-showcase').innerText = "🎈🧸⭐";
             }
 
-            if (solvedSuccessfully) {
-                appProgress.completedLevels[levelKey] = true;
-                appProgress.stars += starsEarned;
-                appProgress.gems += gemsEarned;
-                saveDatabaseProgress();
-            }
+            document.getElementById('summary-score-ratio').innerText = `${correctTotal} / 15`;
+            document.getElementById('sum-plus-stars').innerText = starsGiven;
+            document.getElementById('sum-plus-coins').innerText = coinsGiven;
+            document.getElementById('sum-plus-gems').innerText = gemsGiven;
+            document.getElementById('summary-motivational-text').innerText = descriptiveVerdict;
 
-            document.getElementById('summary-score').innerText = `${score} / 20`;
-            document.getElementById('summary-verdict').innerText = verdict;
-            document.getElementById('summary-stars-earned').innerText = starsEarned;
-            document.getElementById('summary-gems-earned').innerText = gemsEarned;
+            let rowStars = "";
+            for (let s = 0; s < starsGiven; s++) rowStars += "⭐";
+            document.getElementById('summary-stars-row').innerText = rowStars || "✨";
 
-            let starsVisual = "";
-            for (let i = 0; i < starsEarned; i++) starsVisual += "⭐";
-            if (starsVisual === "") starsVisual = "❌";
-            document.getElementById('summary-stars').innerText = starsVisual;
-
-            const nextBtn = document.getElementById('summary-next-btn');
-            if (solvedSuccessfully && lvl < 5) {
-                nextBtn.innerText = "Unlock Level " + (lvl + 1);
-                nextBtn.onclick = () => { launchGamePlay(lvl + 1); };
+            const actionBtn = document.getElementById('summary-action-primary');
+            if (unlockedSuccess && targetLvlIdx < 5) {
+                actionBtn.innerText = "Unlock Next Level";
+                actionBtn.onclick = () => { startExerciseGameplayLoop(targetLvlIdx + 1); };
             } else {
-                nextBtn.innerText = "Try Again";
-                nextBtn.onclick = () => { launchGamePlay(lvl); };
+                actionBtn.innerText = "Try Level Again";
+                actionBtn.onclick = () => { startExerciseGameplayLoop(targetLvlIdx); };
             }
 
+            saveStateToLocalStorage();
             switchScreen('summary');
-            speak(`Challenge completed! You scored ${score} out of 20.`);
+            clearAndNarratePrompt(`Session completed. You scored ${correctTotal} out of 15.`);
         }
 
-        function repeatQuestionVoice() {
-            const task = currentGame.questions[currentGame.currentIndex];
-            speak(task.speakText);
+        function confirmExitActiveSession() {
+            if (confirm("Are you sure you want to exit your game adventure?")) {
+                switchScreen('levels');
+            }
         }
 
-        function exitGamePlay() {
-            switchScreen('levels');
-        }
-
-        // --- SHOP & ACCESSORY CUSTOMIZATION ---
-        function renderShopInventory() {
+        // --- COSMETIC SHOP CATALOG PANEL GENERATOR ---
+        function buildDressUpCatalogSurface() {
             const grid = document.getElementById('shop-items-grid');
             grid.innerHTML = "";
 
-            // Render Preview Mascot with Equips
-            document.getElementById('shop-equipped-accessory').innerText = appProgress.selectedAccessory;
+            document.getElementById('shop-equipped-item').innerText = profileState.equippedItemEmoji;
 
-            SHOP_ACCESSORIES.forEach(item => {
-                const isOwned = appProgress.purchasedAccessories.includes(item.id);
-                const isEquipped = appProgress.selectedAccessory === item.emoji;
+            SHOP_ITEMS.forEach(item => {
+                const acquired = profileState.purchasedItemIds.includes(item.id);
+                const active = profileState.equippedItemEmoji === item.emoji;
 
-                let actionMarkup = "";
-                if (isEquipped) {
-                    actionMarkup = `<span class="bg-indigo-500 text-white font-bold text-xs px-3 py-1 rounded-full">Equipped</span>`;
-                } else if (isOwned) {
-                    actionMarkup = `<button onclick="equipAccessory('${item.emoji}')" class="bg-sky-400 text-white font-bold text-xs px-3 py-1 rounded-full">Wear</button>`;
+                let stateActionMarkup = "";
+                if (active) {
+                    stateActionMarkup = `<span class="text-xs font-bold text-pink-500 bg-pink-50 px-3 py-1 rounded-full">Wearing</span>`;
+                } else if (acquired) {
+                    stateActionMarkup = `<button onclick="toggleEquipWardrobeItem('${item.emoji}')" class="bg-sky-400 text-white font-bold text-xs px-4 py-1 rounded-full">Wear</button>`;
                 } else {
-                    actionMarkup = `
-                        <button onclick="buyAccessory('${item.id}', ${item.cost})" class="bg-pink-400 text-white font-bold text-xs px-3 py-1 rounded-full">
-                            💎 ${item.cost}
+                    stateActionMarkup = `
+                        <button onclick="purchaseWardrobeItem('${item.id}', ${item.gemCost})" class="bg-pink-400 text-white font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                            💎 ${item.gemCost}
                         </button>
                     `;
                 }
 
                 grid.innerHTML += `
-                    <div class="bg-white border-4 border-pink-200 p-4 rounded-3xl text-center space-y-2 flex flex-col items-center">
+                    <div class="bg-white border-2 border-pink-100 p-3 rounded-2xl flex flex-col items-center space-y-1.5 text-center">
                         <span class="text-4xl">${item.emoji}</span>
-                        <h4 class="font-bold text-sm text-slate-700">${item.name}</h4>
-                        ${actionMarkup}
+                        <h5 class="font-bold text-slate-700 text-xs">${item.label}</h5>
+                        ${stateActionMarkup}
                     </div>
                 `;
             });
         }
 
-        function buyAccessory(itemId, cost) {
-            if (appProgress.gems >= cost) {
-                appProgress.gems -= cost;
-                appProgress.purchasedAccessories.push(itemId);
-                saveDatabaseProgress();
-                playSoundEffect('success');
-                renderShopInventory();
+        function purchaseWardrobeItem(id, cost) {
+            if (profileState.gems >= cost) {
+                profileState.gems -= cost;
+                profileState.purchasedItemIds.push(id);
+                saveStateToLocalStorage();
+                playSoundChime('success');
+                buildDressUpCatalogSurface();
             } else {
-                playSoundEffect('error');
-                alert("Earn more gems by playing levels to purchase this hat!");
+                playSoundChime('failure');
+                alert("Keep exploring adventures to earn more gems!");
             }
         }
 
-        function equipAccessory(emoji) {
-            playSoundEffect('tap');
-            appProgress.selectedAccessory = appProgress.selectedAccessory === emoji ? "" : emoji;
-            saveDatabaseProgress();
-            renderShopInventory();
+        function toggleEquipWardrobeItem(emoji) {
+            playSoundChime('click');
+            profileState.equippedItemEmoji = (profileState.equippedItemEmoji === emoji) ? "" : emoji;
+            saveStateToLocalStorage();
+            buildDressUpCatalogSurface();
         }
 
-        // --- STICKER ALBUM RENDER ---
-        const ALBUM_STICKERS = [
-            { emoji: "🦁", name: "Leo the Lion", cost: 1 },
-            { emoji: "🦄", name: "Sparky Unicorn", cost: 3 },
-            { emoji: "🐙", name: "Ollie Octopus", cost: 5 },
-            { emoji: "🦖", name: "Dino Rex", cost: 8 },
-            { emoji: "🐼", name: "Panda Roll", cost: 12 },
-            { emoji: "🛸", name: "Cosmic Alien", cost: 15 }
-        ];
+        // --- REWARDS & PRIZES GALLERY ALBUM ---
+        function buildPrizeAlbumSurface() {
+            const box = document.getElementById('rewards-grid-target');
+            box.innerHTML = "";
 
-        function renderStickerBook() {
-            const container = document.getElementById('sticker-grid-container');
-            container.innerHTML = "";
-
-            ALBUM_STICKERS.forEach(sticker => {
-                const isUnlocked = appProgress.stars >= sticker.cost;
-
-                if (isUnlocked) {
-                    container.innerHTML += `
-                        <div class="bg-white border-4 border-indigo-200 p-3 rounded-2xl text-center shadow-sm relative hover:rotate-3 transition-transform cursor-pointer">
-                            <span class="text-5xl block mb-1">${sticker.emoji}</span>
-                            <h4 class="font-bold text-xs text-indigo-600">${sticker.name}</h4>
-                            <span class="text-[9px] bg-emerald-100 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full">Collected</span>
+            STICKER_COLLECTION.forEach(st => {
+                const unlocked = profileState.stars >= st.costStars;
+                if (unlocked) {
+                    box.innerHTML += `
+                        <div class="bg-white border-2 border-purple-200 p-3 rounded-xl text-center shadow-xs">
+                            <span class="text-4xl block">${st.emoji}</span>
+                            <p class="font-bold text-[10px] text-purple-600 mt-1">${st.title}</p>
+                            <span class="text-[8px] bg-emerald-50 text-emerald-600 font-bold px-1 py-0.5 rounded-md">Unlocked</span>
                         </div>
                     `;
                 } else {
-                    container.innerHTML += `
-                        <div class="bg-slate-50 border-4 border-dashed border-slate-200 p-3 rounded-2xl text-center opacity-60 flex flex-col justify-center items-center">
-                            <span class="text-3xl block grayscale">🔒</span>
-                            <h4 class="font-bold text-[10px] text-gray-400 mt-1">${sticker.name}</h4>
-                            <span class="text-[9px] text-indigo-500 font-bold mt-1">Need ⭐ ${sticker.cost}</span>
+                    box.innerHTML += `
+                        <div class="bg-slate-100 border-2 border-dashed border-slate-200 p-3 rounded-xl text-center opacity-50 flex flex-col items-center justify-center">
+                            <span class="text-2xl grayscale">🔒</span>
+                            <p class="font-bold text-[9px] text-slate-400 mt-1">Need ⭐ ${st.costStars}</p>
                         </div>
                     `;
                 }
             });
         }
 
-        // --- PARENTS LOCK GATE ---
-        let parentCalculation = { n1: 0, n2: 0, res: 0 };
-        function setupParentsGate() {
-            const n1 = Math.floor(Math.random() * 8) + 12;
-            const n2 = Math.floor(Math.random() * 7) + 6;
-            parentCalculation.n1 = n1;
-            parentCalculation.n2 = n2;
-            parentCalculation.res = n1 + n2;
+        // --- SECURITY LOCK GATEWAY & DASHBOARD ANALYTICS ---
+        let securityProblemKey = 0;
+        function openParentsSecurityGate() {
+            const factorA = Math.floor(Math.random() * 9) + 11;
+            const factorB = Math.floor(Math.random() * 8) + 5;
+            securityProblemKey = factorA + factorB;
 
-            document.getElementById('gate-n1').innerText = n1;
-            document.getElementById('gate-n2').innerText = n2;
-            document.getElementById('gate-answer').value = "";
-            document.getElementById('gate-error-message').innerText = "";
+            document.getElementById('gate-factor-a').innerText = factorA;
+            document.getElementById('gate-factor-b').innerText = factorB;
+            document.getElementById('gate-input-field').value = "";
+            document.getElementById('gate-error-log').innerText = "";
 
-            document.getElementById('parents-gate').classList.remove('hidden');
-            document.getElementById('parents-dashboard').classList.add('hidden');
+            document.getElementById('parents-lock-gate').classList.remove('hidden');
+            document.getElementById('parents-analytics-dashboard').classList.add('hidden');
+            
+            switchScreen('parents');
         }
 
-        function verifyParentsGate() {
-            const val = parseInt(document.getElementById('gate-answer').value);
-            if (val === parentCalculation.res) {
-                playSoundEffect('success');
-                document.getElementById('parents-gate').classList.add('hidden');
-                document.getElementById('parents-dashboard').classList.remove('hidden');
-                renderParentMetricsPanel();
+        function submitParentsGateVerification() {
+            const parsedInput = parseInt(document.getElementById('gate-input-field').value);
+            if (parsedInput === securityProblemKey) {
+                playSoundChime('success');
+                document.getElementById('parents-lock-gate').classList.add('hidden');
+                document.getElementById('parents-analytics-dashboard').classList.remove('hidden');
+                populateParentAnalyticsConsole();
             } else {
-                playSoundEffect('error');
-                document.getElementById('gate-error-message').innerText = "Incorrect answer. Try again.";
+                playSoundChime('failure');
+                document.getElementById('gate-error-log').innerText = "Incorrect arithmetic validation code.";
             }
         }
 
-        function renderParentMetricsPanel() {
-            const total = appProgress.totalCorrect + appProgress.totalIncorrect;
-            const accuracy = total > 0 ? Math.round((appProgress.totalCorrect / total) * 100) + "%" : "100%";
+        function populateParentAnalyticsConsole() {
+            const sumAll = profileState.totalCorrectAnswers + profileState.totalIncorrectAnswers;
+            const precisionRatio = sumAll > 0 ? Math.round((profileState.totalCorrectAnswers / sumAll) * 100) + "%" : "100%";
 
-            document.getElementById('parent-accuracy').innerText = accuracy;
-            document.getElementById('parent-streak').innerText = appProgress.streak + " Days";
+            document.getElementById('p-metric-accuracy').innerText = precisionRatio;
+            document.getElementById('p-metric-count').innerText = `${sumAll} items`;
 
-            const skillsBox = document.getElementById('parent-skills-mastery');
-            skillsBox.innerHTML = "";
+            const elementRowsContainer = document.getElementById('p-metric-milestones-box');
+            elementRowsContainer.innerHTML = "";
 
-            MODULE_REGISTRY.forEach(mod => {
-                let levelsSolved = 0;
-                for (let lvl = 1; lvl <= 5; lvl++) {
-                    if (appProgress.completedLevels[`${mod.id}_${lvl}`]) levelsSolved++;
+            EDUCATIONAL_MODULES.forEach(m => {
+                let currentMaxUnlocked = 0;
+                for (let levelIdx = 1; levelIdx <= 5; levelIdx++) {
+                    if (profileState.completedLevels[`${m.id}_${levelIdx}`]) currentMaxUnlocked = levelIdx;
                 }
-
-                const status = levelsSolved === 5 
-                    ? `<span class="text-emerald-500 font-bold">✓ Mastered</span>` 
-                    : `<span class="text-amber-500 font-bold">${levelsSolved}/5 Completed</span>`;
-
-                skillsBox.innerHTML += `
-                    <div class="flex justify-between items-center py-1 border-b border-slate-100">
-                        <span>${mod.name}</span>
-                        <span>${status}</span>
+                
+                elementRowsContainer.innerHTML += `
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="font-medium text-slate-700">${m.name}</span>
+                        <span class="font-bold ${currentMaxUnlocked > 0 ? 'text-teal-600' : 'text-slate-400'}">
+                            ${currentMaxUnlocked === 5 ? '🏆 Completed Master' : `Level ${currentMaxUnlocked} Unlocked`}
+                        </span>
                     </div>
                 `;
             });
         }
 
-        function resetAllProgress() {
-            if (confirm("Reset everything?")) {
-                localStorage.removeItem(SAVE_KEY);
-                appProgress = {
-                    stars: 0,
-                    gems: 15,
-                    streak: 1,
-                    lastPlayedDate: new Date().toDateString(),
-                    completedLevels: {},
-                    perfectLevels: {},
-                    totalCorrect: 0,
-                    totalIncorrect: 0,
-                    audioEnabled: true,
-                    selectedMascot: "🦊",
-                    selectedAccessory: "",
-                    purchasedAccessories: []
-                };
-                saveDatabaseProgress();
-                switchScreen('home');
+        function hardResetAppProgress() {
+            if (confirm("Warning! This will clear all milestones, coins, stars, and collected items. Continue?")) {
+                localStorage.removeItem(SAVE_STORAGE_KEY);
+                location.reload();
             }
         }
 
-        // --- CORE UTILITY persistence ---
-        function loadSavedProgress() {
-            const raw = localStorage.getItem(SAVE_KEY);
-            if (raw) {
-                appProgress = { ...appProgress, ...JSON.parse(raw) };
+        // --- LOCAL STORAGE DATA SYNC ---
+        function loadProfileStateFromStorage() {
+            const contents = localStorage.getItem(SAVE_STORAGE_KEY);
+            if (contents) {
+                try {
+                    profileState = { ...profileState, ...JSON.parse(contents) };
+                } catch (e) {
+                    console.error("State parse exception context fallback resetting executed: ", e);
+                }
             }
-            updateLiveIndicators();
+            synchronizeTopWalletDisplays();
         }
 
-        function saveDatabaseProgress() {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(appProgress));
-            updateLiveIndicators();
+        function saveStateToLocalStorage() {
+            localStorage.setItem(SAVE_STORAGE_KEY, JSON.stringify(profileState));
+            synchronizeTopWalletDisplays();
         }
 
-        function updateLiveIndicators() {
-            document.getElementById('global-star-count').innerText = appProgress.stars;
-            document.getElementById('global-gem-count').innerText = appProgress.gems;
+        function synchronizeTopWalletDisplays() {
+            document.getElementById('stat-stars').innerText = profileState.stars;
+            document.getElementById('stat-coins').innerText = profileState.coins;
+            document.getElementById('stat-gems').innerText = profileState.gems;
+            document.getElementById('streak-days').innerText = `${profileState.streak} Day${profileState.streak > 1 ? 's' : ''}`;
         }
 
-        // --- PARTICLE EMITTER FOR TOUCH ENGAGEMENT ---
-        function triggerVisualParticles(x, y) {
-            const container = document.getElementById('sparkle-canvas-container');
-            const icons = ['⭐', '✨', '🎈', '🍪', '🌸'];
-            for (let i = 0; i < 20; i++) {
-                const item = document.createElement('span');
-                item.className = 'star-particle text-2xl';
-                item.innerText = icons[Math.floor(Math.random() * icons.length)];
+        // --- DYNAMIC PARTICLE CELEBRATION DISPENSER ---
+        function triggerVisualExplosionParticles(originX, originY) {
+            const container = document.getElementById('particle-container');
+            const elementsPool = ['⭐', '✨', '🎈', '🌸', '👑', '🌈'];
+            
+            for (let idx = 0; idx < 24; idx++) {
+                const bubble = document.createElement('span');
+                bubble.className = 'celebration-star text-2xl';
+                bubble.innerText = elementsPool[Math.floor(Math.random() * elementsPool.length)];
                 
-                // Random drift coordinates
-                const driftX = (Math.random() - 0.5) * 150;
-                item.style.left = `${x}px`;
-                item.style.top = `${y}px`;
-                item.style.transform = `translateX(${driftX}px)`;
-                
-                container.appendChild(item);
-                setTimeout(() => item.remove(), 800);
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 40 + Math.random() * 120;
+                const deltaX = Math.cos(angle) * distance;
+                const deltaY = Math.sin(angle) * distance;
+
+                bubble.style.setProperty('--x', `${deltaX}px`);
+                bubble.style.setProperty('--y', `${deltaY}px`);
+                bubble.style.left = `${originX}px`;
+                bubble.style.top = `${originY}px`;
+
+                container.appendChild(bubble);
+                setTimeout(() => bubble.remove(), 900);
             }
         }
 
+        // --- SYSTEM ENGINE BOOT INTERFACE INITIALIZER ---
         window.addEventListener('DOMContentLoaded', () => {
-            loadSavedProgress();
-            renderHomeMascot();
+            loadProfileStateFromStorage();
+            renderMascotStateInterface();
         });
     </script>
 </body>
