@@ -83,7 +83,7 @@
 
                 <div class="bg-yellow-100 border-2 border-yellow-300 rounded-2xl p-4 flex items-center space-x-3 text-yellow-800">
                     <span class="text-2xl">💡</span>
-                    <p class="text-xs font-semibold">Tip for Teachers & Parents: Our interface has extra-large touch zones, designed for developing motor skills!</p>
+                    <p class="text-xs font-semibold">Tip for Teachers & Parents: Tap any button to activate the built-in sound engine!</p>
                 </div>
             </div>
 
@@ -259,7 +259,7 @@
                     <div class="bg-white p-4 rounded-2xl border border-slate-200 space-y-3">
                         <h3 class="font-bold text-xs text-slate-500 uppercase">Interactive Settings</h3>
                         <div class="flex items-center justify-between text-sm">
-                            <span>Background Music</span>
+                            <span>Background Sound Effects</span>
                             <button id="music-btn" onclick="toggleMute()" class="bg-emerald-400 text-white font-bold px-3 py-1 rounded-lg text-xs">ON</button>
                         </div>
                         <div class="flex items-center justify-between text-sm">
@@ -316,8 +316,74 @@
             }
         };
 
+        // Built-in Web Audio API Sound Synthesizer
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSynthesizedSound(type) {
+            if (!state.soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    // Cute ascending double-chime (Happy / Correct)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5 note
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    
+                    osc.frequency.setValueAtTime(659.25, now + 0.12); // E5 note (major third higher)
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'wrong') {
+                    // Soft, non-scary low sliding tone (Friendly "Try Again")
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(260, now); 
+                    osc.frequency.exponentialRampToValueAtTime(140, now + 0.3); // glide downwards
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'tap') {
+                    // Gentle subtle bubble-pop click sound for normal buttons
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                }
+            } catch (error) {
+                console.log("Audio couldn't play yet due to browser user-gesture restrictions:", error);
+            }
+        }
+
         // Navigation Engine
         function switchScreen(screenName) {
+            playSynthesizedSound('tap');
+            
             // Hide all screen contents
             document.getElementById('screen-home').classList.add('hidden');
             document.getElementById('screen-learn').classList.add('hidden');
@@ -360,6 +426,7 @@
 
         // Game 1 logic: Count the Fruits
         function startFruitGame() {
+            playSynthesizedSound('tap');
             switchScreen('games');
             document.getElementById('game-selection').classList.add('hidden');
             document.getElementById('game-fruit').classList.remove('hidden');
@@ -400,16 +467,19 @@
         function checkFruitAnswer(selected) {
             const feedback = document.getElementById('fruit-feedback');
             if (selected === state.games.fruit.correctAnswer) {
+                playSynthesizedSound('correct');
                 feedback.innerHTML = "🌟 Awesome job! That is correct! 🌟";
                 earnStars(1);
                 setTimeout(startFruitGame, 1500); // Reload next math puzzle
             } else {
+                playSynthesizedSound('wrong');
                 feedback.innerHTML = "✨ Give it another try! ✨";
             }
         }
 
         // Game 2 logic: Balloon Math Pop
         function startBalloonGame() {
+            playSynthesizedSound('tap');
             switchScreen('games');
             document.getElementById('game-selection').classList.add('hidden');
             document.getElementById('game-balloon').classList.remove('hidden');
@@ -445,10 +515,12 @@
         function checkBalloonAnswer(selected) {
             const feedback = document.getElementById('balloon-feedback');
             if (selected === state.games.balloon.correctAnswer) {
+                playSynthesizedSound('correct');
                 feedback.innerHTML = "🎈 Pop! Yay, you got it! 🎈";
                 earnStars(1);
                 setTimeout(startBalloonGame, 1500);
             } else {
+                playSynthesizedSound('wrong');
                 feedback.innerHTML = "🌈 Keep trying, little star! 🌈";
             }
         }
@@ -472,20 +544,23 @@
         function verifyParentsGate() {
             const inputVal = parseInt(document.getElementById('gate-answer').value);
             if (inputVal === state.parentsGate.ans) {
+                playSynthesizedSound('correct');
                 document.getElementById('parents-gate').classList.add('hidden');
                 document.getElementById('parents-dashboard').classList.remove('hidden');
             } else {
+                playSynthesizedSound('wrong');
                 document.getElementById('gate-error').innerText = "Oops, wrong answer! Try again.";
             }
         }
 
-        // Background music simulation controller toggle
+        // Sound effects controller toggle
         function toggleMute() {
             state.soundEnabled = !state.soundEnabled;
             const btn = document.getElementById('music-btn');
             if (state.soundEnabled) {
                 btn.innerText = "ON";
                 btn.className = "bg-emerald-400 text-white font-bold px-3 py-1 rounded-lg text-xs";
+                playSynthesizedSound('correct');
             } else {
                 btn.innerText = "MUTED";
                 btn.className = "bg-rose-400 text-white font-bold px-3 py-1 rounded-lg text-xs";
